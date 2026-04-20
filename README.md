@@ -113,4 +113,4 @@ Výstupní soubor `.xex` lze spustit přímo na Atari nebo nahrát přes FujiNet
 
 ## Licence
 
-Projekt vznikl jako diplomová práce na katedře informatiky. Zdrojové kódy jsou dostupné pro studijní účely.
+Projekt vznikl jako diplomová práce na katedře informatiky UPOL (https://www.inf.upol.cz/). Zdrojové kódy jsou dostupné pro studijní účely.
