@@ -35,29 +35,31 @@ Aplikace má tři hlavní stavy:
 ```
 /
 ├── src/
-│   ├── main.asm          ; hlavní vstupní bod, stavový automat
-│   ├── attractor/        ; attractor mód — grafické efekty, zvuk
-│   ├── map/              ; mapa budovy, pohyb hráče
-│   ├── rooms/            ; jednotlivé ukázkové místnosti
-│   │   ├── room_pc.asm       ; počítačová učebna — P/M grafika
-│   │   ├── room_server.asm   ; serverovna — DLI, horizontal scroll
-│   │   ├── room_office.asm   ; kancelář — POKEY syntezátor
-│   │   ├── room_seminar.asm  ; seminární místnost — mixed display list
-│   │   ├── room_hall.asm     ; chodba / exteriér — vertical scroll
-│   │   └── room_secret.asm   ; tajná místnost — bankswitching
-│   ├── charset/          ; custom český charset (8×8 px, 1 KB)
-│   ├── display_list/     ; display list rutiny a DLI handlery
-│   └── lib/              ; sdílené rutiny (VBI, SIO, vstupy)
+│   ├── main.asm                ; hlavní vstupní bod, stavový automat
+│   ├── attractor/              ; attractor mód — grafické efekty, zvuk
+│   ├── map/                    ; mapa budovy, pohyb hráče
+│   ├── rooms/                  ; jednotlivé ukázkové místnosti
+│   │   ├── room_pc.asm         ; počítačová učebna — P/M grafika
+│   │   ├── room_server.asm     ; serverovna — DLI, horizontal scroll
+│   │   ├── room_office.asm     ; kancelář — POKEY syntezátor
+│   │   ├── room_seminar.asm    ; seminární místnost — mixed display list
+│   │   ├── room_hall.asm       ; chodba / exteriér — vertical scroll
+│   │   └── room_secret.asm     ; tajná místnost — bankswitching
+│   ├── charset/
+│   │   └── charset_init.asm    ; init rutiny, kopie ROM→RAM, .INCBIN reference
+│   ├── display_list/           ; display list rutiny a DLI handlery
+│   └── lib/                    ; sdílené rutiny (VBI, SIO, vstupy)
 ├── assets/
-│   ├── charset.bin       ; binární data českého fontu
-│   ├── maps/             ; data herních map (tile-based)
-│   └── music/            ; POKEY hudební data
+│   ├── charset.bin             ; master font — 1024 bytů, editovaný v grafickém editoru
+│   ├── maps/                   ; data herních map (tile-based)
+│   └── music/                  ; POKEY hudební data
 ├── tools/
-│   └── charset_editor/   ; pomocný nástroj pro editaci fontu
+│   ├── charset_editor/         ; pomocný nástroj pro editaci fontu
+│   └── run-atari.sh            ; macOS: spuštění sestaveného .xex v Atari800MacX
 ├── docs/
-│   ├── memory_map.md     ; přehled paměťové mapy aplikace
-│   ├── display_list.md   ; dokumentace display listů
-│   └── hardware_notes.md ; poznámky k hardware registrům
+│   ├── memory_map.md           ; přehled paměťové mapy aplikace
+│   ├── display_list.md         ; dokumentace display listů
+│   └── hardware_notes.md       ; poznámky k hardware registrům
 └── README.md
 ```
 
@@ -65,21 +67,32 @@ Aplikace má tři hlavní stavy:
 
 ## Sestavení
 
-Projekt používá assembler **MADS** (Mad Assembler). Sestavení na PC:
+Projekt používá cross-assembler **ATasm** (mac/65-kompatibilní). Doporučené vývojové prostředí je **VS Code** s rozšířením [Atasm Altirra Bridge](https://marketplace.visualstudio.com/items?itemName=cerebus.atasm-altirra-bridge), které sestavení i spuštění v emulátoru spojuje do jednoho kroku (`F5`).
+
+### Instalace na macOS
 
 ```bash
-mads main.asm -o build/prezentace.xex
+brew install atasm
 ```
 
-Výstupní soubor `.xex` lze spustit přímo na Atari nebo nahrát přes FujiNet. Pro vývoj a testování je doporučen emulátor **Altirra**.
+V nastavení rozšíření (`Cmd+,` → hledat „atasm") je potřeba nastavit **Assembler: Atasm Path** na cestu vrácenou příkazem `which atasm` — assembler dodávaný přímo s rozšířením v aktuální verzi pro macOS chybí.
+
+### Ruční sestavení z příkazové řádky
+
+```bash
+atasm src/main.asm -obuild/prezentace.xex
+```
+
+Výstupní soubor `.xex` lze spustit přímo na Atari, nahrát přes FujiNet, nebo načíst do emulátoru (drag-and-drop, případně `tools/run-atari.sh` na macOS).
 
 ### Doporučené nástroje
 
 | Nástroj | Účel |
 |---|---|
-| [MADS](http://mads.atari8.info) | Assembler pro 6502 |
+| [ATasm](https://github.com/CycoPH/atasm) | Assembler pro 6502 (mac/65-kompatibilní) |
+| [Atasm Altirra Bridge](https://marketplace.visualstudio.com/items?itemName=cerebus.atasm-altirra-bridge) | Rozšíření VS Code — sestavení a spuštění jedním příkazem |
 | [Altirra](https://www.virtualdub.org/altirra.html) | Emulátor Atari (Windows) |
-| [Atasm](https://atasm.sourceforge.net) | Alternativní assembler |
+| [Atari800MacX](https://www.atarimac.com/atari800macx.php) | Nativní emulátor Atari 130XE pro macOS, použitý při vývoji |
 | [FujiNet](https://fujinet.online) | Síťový modul pro Atari |
 
 ---
