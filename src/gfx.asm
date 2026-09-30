@@ -1,14 +1,10 @@
-gfx_school
-    .byte %00000000
-    .byte %00000000
-    .byte %00000000
-    .byte %00000000
-    .byte %00000000
-    .byte %00000000
-    .byte %00000000
-    .byte %00000000
+; Start in memory at charset
+    * = charset
+; Blank tile [0/128], [1/129]
+    .byte $00, $00, $00, $00, $00, $00, $00, $00
+    .byte $00, $00, $00, $00, $00, $00, $00, $00
 
-; Window tile left [1/129]
+; Window tile left [2/130]
     .byte %01011001
     .byte %01110111
     .byte %01110111
@@ -18,7 +14,7 @@ gfx_school
     .byte %01110111
     .byte %01011001
 
-; Window tile center [2/130]
+; Window tile center [3/131]
     .byte %01010101
     .byte %11111111
     .byte %11111111
@@ -28,7 +24,7 @@ gfx_school
     .byte %11111111
     .byte %01010101
 
-; Window tile right [3/131]
+; Window tile right [4/132]
     .byte %01100101
     .byte %11011101
     .byte %11011101
@@ -38,7 +34,7 @@ gfx_school
     .byte %11011101
     .byte %01100101
     
-; Brick A_left [4/132]
+; Brick A_left [5/133]
     .byte %01010110
     .byte %01010101
     .byte %01101010
@@ -48,7 +44,7 @@ gfx_school
     .byte %01010110
     .byte %01010110
 
-; Brick A_right [5/133]
+; Brick A_right [6/134]
     .byte %10101010
     .byte %01010101
     .byte %10100101
@@ -58,7 +54,7 @@ gfx_school
     .byte %10101010
     .byte %10101010
 
-; Brick B_left [6/134]
+; Brick B_left [7/135]
     .byte %10100110
     .byte %01010101
     .byte %10101010
@@ -68,7 +64,7 @@ gfx_school
     .byte %10100110
     .byte %10100110
 
-; Brick B_right [7/135]
+; Brick B_right [8/136]
     .byte %10101010
     .byte %01010101
     .byte %10011010
@@ -78,7 +74,7 @@ gfx_school
     .byte %10101010
     .byte %10101010
 
-; Brick C_left [8/136]
+; Brick C_left [9/137]
     .byte %10101010
     .byte %10101010
     .byte %01010101
@@ -88,7 +84,7 @@ gfx_school
     .byte %01010101
     .byte %10101010
 
-; Brick C_right [9/137]
+; Brick C_right [10/138]
     .byte %10010101
     .byte %10010101
     .byte %01010101
@@ -98,4 +94,24 @@ gfx_school
     .byte %01010101
     .byte %10010101
 
-chars_len = * - gfx_school
+; Bottom_window_left [11/139]
+    .byte %01111111
+    .byte %01111111
+    .byte %01010101
+    .byte %01111111
+    .byte %01111111
+    .byte %01111111
+    .byte %01111111
+    .byte %01111111
+
+; Bottom_window_right [12/140]
+    .byte %11111101
+    .byte %11111101
+    .byte %01010101
+    .byte %11111101
+    .byte %11111101
+    .byte %11111101
+    .byte %11111101
+    .byte %11111101
+
+;chars_len = * - gfx_school
