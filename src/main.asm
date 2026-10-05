@@ -6,11 +6,16 @@
 
 charset = $5000         ; Charset memory start address
 screen = $4000          ; Screen memory start address
+screen_len = 40*12      ; 12 rows of ANTIC 5 (dlist.asm), 40 B each
+                        ; increase when: dlist.asm gets more mode lines, the playfield is
+                        ; switched to wide (48 B/row in SDMCTL), or the map scrolls (bigger buffer)
 pmg = $6000             ; Player/Missile graphics data start address
 pmg_len = $400          ; PMG area size: 1 KB for double-line resolution
 
 ZP_SRC = $CB            ; source pointer (zero page, $CB-$CC)
+ZP_SRC_LEN = 2          ; 16-bit pointer, never grows; add a new ZP_* name for more ZP space
 ZP_DST = $CD            ; destination pointer (zero page, $CD-$CE)
+ZP_DST_LEN = 2
 
 start
     jsr setup_screen
@@ -79,6 +84,9 @@ map_len = * - map
 
 .IF map_len > 255
     .ERROR "Map too big for X-indexed display_map"
+.ENDIF
+.IF map_len*2 > screen_len
+    .ERROR "Map bigger than screen memory"
 .ENDIF
 
 .IF * > charset
