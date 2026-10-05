@@ -1,24 +1,25 @@
 ; pmg.asm - Player/Missile graphics setup
 
+; Player memory (double-line resolution: 128 B per player)
+pmg_p0 = pmg + $200
+pmg_p1 = pmg + $280
+pmg_p2 = pmg + $300
+pmg_p3 = pmg + $380
+
 ; Function: clear_pmg
 ; Description: Clear the player/missile graphics memory
 ; INPUT: none
 ; OUTPUT: none
     .LOCAL
 clear_pmg
-?pmg_p0 = pmg + $200
-?pmg_p1 = pmg + $280
-?pmg_p2 = pmg + $300
-?pmg_p3 = pmg + $380
-
     ldx #$80            ; load 80, counting down
     lda #0
 ?loop
     dex
-    sta ?pmg_p0,x
-    sta ?pmg_p1,x
-    sta ?pmg_p2,x
-    sta ?pmg_p3,x
+    sta pmg_p0,x
+    sta pmg_p1,x
+    sta pmg_p2,x
+    sta pmg_p3,x
     bne ?loop
     rts
 
@@ -28,17 +29,12 @@ clear_pmg
 ; OUTPUT: none
     .LOCAL
 load_pmg
-?pmg_p0 = pmg + $200
-?pmg_p1 = pmg + $280
-?pmg_p2 = pmg + $300
-?pmg_p3 = pmg + $380
-
     ldx #0
 ?loop
-    MVA pmgdata,x ?pmg_p0+64,x
-    MVA pmgdata+8,x ?pmg_p1+64,x
-    MVA pmgdata+16,x ?pmg_p2+64,x
-    MVA pmgdata+24,x ?pmg_p3+64,x
+    MVA pmgdata,x pmg_p0+64,x
+    MVA pmgdata+8,x pmg_p1+64,x
+    MVA pmgdata+16,x pmg_p2+64,x
+    MVA pmgdata+24,x pmg_p3+64,x
     inx
     cpx #8
     bne ?loop

@@ -7,6 +7,7 @@
 charset = $5000         ; Charset memory start address
 screen = $4000          ; Screen memory start address
 pmg = $6000         ; Player/Missile graphics data start address
+pmg_len = $400      ; PMG area size: 1 KB for double-line resolution
 
 ZP_SRC = $CB            ; source pointer (zero page, $CB-$CC)
 ZP_DST = $CD            ; destination pointer (zero page, $CD-$CE)

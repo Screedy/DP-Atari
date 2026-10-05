@@ -331,6 +331,7 @@ def report(segs, labels, overwrites=(), verbose=0, machine="130xe", diagram_only
         if not any(s <= a <= e for s, e, _ in system)  # OS equates like COLOR0 drop out
         and n not in sized
         and not any(s <= a <= e for s, e in data)
+        and not any(s <= a <= e for s, e, _ in reserved)  # e.g. PMG_P0 inside PMG
     ]
     rt = sorted(reserved + [(a, a, n) for a, n in unknown])
 

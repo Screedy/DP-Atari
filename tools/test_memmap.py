@@ -79,3 +79,8 @@ for v in (0, 1, 2, 3):
     assert ("A PMGDATA" in text) == (v >= 2)
     assert (len(re.findall(r"\$[0-9A-F]{2}00 │", text)) == 256) == (v == 3)
 print("diagram-only ok")
+
+# labels inside a reserved area are covered by it, not "size unknown"
+text, _ = report(pmg, parse_lab("7000 PMG\n0400 PMG_LEN\n7200 PMG_P0\n"))
+assert "PMG_P0" not in text and "$7000-$73FF    1024 B  PMG" in text
+print("inside-reserved ok")
