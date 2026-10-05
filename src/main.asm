@@ -6,7 +6,7 @@
 
 charset = $5000         ; Charset memory start address
 screen = $4000          ; Screen memory start address
-pmgdata = $6000         ; Player/Missile graphics data start address
+pmg = $6000         ; Player/Missile graphics data start address
 
 ZP_SRC = $CB            ; source pointer (zero page, $CB-$CC)
 ZP_DST = $CD            ; destination pointer (zero page, $CD-$CE)
@@ -16,6 +16,9 @@ start
     jsr setup_colors
 ;    jsr load_gfx
     MVA #>charset CHBAS         ; Set character set base address
+    jsr clear_pmg
+    jsr load_pmg
+    jsr setup_pmg
     jsr display_map
 
     jmp *
@@ -106,6 +109,7 @@ copy_mem
     .ERROR "Charset memory overlap"
 .ENDIF
 .INCLUDE "gfx.asm"
+.INCLUDE "pmg.asm"
 .INCLUDE "pmgdata.asm"
 ; ----------- Run the program -----------
     .RUN start

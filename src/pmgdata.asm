@@ -1,5 +1,5 @@
 ; pmgdata.asm
-    * = PMGDATA
+pmgdata
 
 ; PCOLOR0 - Brown
     .BYTE %00111100
