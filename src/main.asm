@@ -9,8 +9,14 @@ screen = $4000          ; Screen memory start address
 screen_len = 40*12      ; 12 rows of ANTIC 5 (dlist.asm), 40 B each
                         ; increase when: dlist.asm gets more mode lines, the playfield is
                         ; switched to wide (48 B/row in SDMCTL), or the map scrolls (bigger buffer)
-pmg = $6000             ; Player/Missile graphics data start address
+map_area = $8000        ; current room's tile map is loaded/copied here (outside the
+                        ; 130XE bank window $4000-$7FFF, so maps can come from banks)
+map_area_len = $2000    ; 8 KB reserved for maps; the biggest room must fit
+map_w = 80              ; tiles per map row (current room)
+map_h = 12              ; map rows
+view_w = 20             ; tiles visible on screen (20 tiles = 40 chars)
 pmg_len = $400          ; PMG area size: 1 KB for double-line resolution
+pmg = map_area-pmg_len  ; Player/Missile graphics, right below the map area ($7C00)
 
 ZP_SRC = $CB            ; source pointer (zero page, $CB-$CC)
 ZP_SRC_LEN = 2          ; 16-bit pointer, never grows; add a new ZP_* name for more ZP space
@@ -35,58 +41,36 @@ start
     .INCLUDE "colors.asm"
     .INCLUDE "tiles.asm"
 
-; ----------- Subroutines -----------
-
 ; Function: display_map
-; Description: Display the map on the screen
-; INPUT: none
+; Description: Draw the left view_w tiles of each map row onto the screen
+; INPUT: none (reads map_area, writes screen)
 ; OUTPUT: none
+; DESTROYED: A, X, Y, ZP_SRC, ZP_DST
     .LOCAL
-; map is exactly screen width (20 tiles = 40 chars), so screen rows are contiguous;
-; add a row stride when maps get wider or scroll
+; ponytail: always shows map columns 0-19; scrolling (view offset + LMS/HSCROL)
+; comes with the DLI/scroll work
 display_map
+    MWA map_area ZP_SRC        ; source: tile map
     MWA screen ZP_DST          ; destination: screen memory
-    ldx #0                     ; X = tile index in the map
-?loop
-    ldy map,x                  ; Y = tile ID
-    lda tile_right,y
-    pha                        ; keep right char
-    lda tile_left,y
+    MVA #map_h ?rows
+?row
+    ldx #view_w                ; X = tiles left in this row
+?tile
     ldy #0
-    sta (ZP_DST),y             ; left char
-    pla
-    iny
-    sta (ZP_DST),y             ; right char
-    clc                        ; ZP_DST += 2
-    lda ZP_DST
-    adc #2
-    sta ZP_DST
-    bcc ?next
-    inc ZP_DST+1
-?next
-    inx
-    cpx #map_len
-    bne ?loop
+    lda (ZP_SRC),y             ; A = tile ID
+    jsr draw_tile              ; draw it, ZP_DST += 2
+    ADW ZP_SRC #1              ; next tile
+    dex
+    bne ?tile
+    ADW ZP_SRC #map_w-view_w   ; skip the tiles right of the view
+    dec ?rows
+    bne ?row
     rts
+?rows
+    .BYTE 0
 
-map                     ; 20 x 9 tiles, see tiles.asm
-    .BYTE EMP,EMP,EMP,EMP,EMP,EMP,EMP,EMP,EMP,EMP,EMP,EMP,EMP,EMP,EMP,EMP,EMP,EMP,EMP,EMP
-    .BYTE EMP,EMP,EMP,EMP,EMP,EMP,EMP,EMP,EMP,EMP,EMP,EMP,EMP,EMP,EMP,EMP,EMP,EMP,EMP,EMP
-    .BYTE EMP,EMP,EMP,EMP,EMP,EMP,EMP,EMP,EMP,EMP,EMP,EMP,EMP,EMP,EMP,EMP,EMP,EMP,EMP,EMP
-    .BYTE EMP,EMP,EMP,EMP,EMP,EMP,EMP,EMP,EMP,EMP,EMP,EMP,EMP,EMP,EMP,EMP,EMP,EMP,EMP,EMP
-    .BYTE BRA,WNL,WNR,BRB,WNL,WNR,BRB,WNL,WNR,BRA,WNL,WNR,BRA,WNL,WNR,BRC,WNL,WNR,BRB,WNL
-    .BYTE BRA,WNL,WNR,BRB,LWL,LWR,BRB,WNL,WNR,BRA,WNL,WNR,BRA,WNL,WNR,BRC,WNL,WNR,BRB,WNL
-    .BYTE BRA,WNL,WNR,BRB,WNL,WNR,BRB,WNL,WNR,BRA,WNL,WNR,BRA,WNL,WNR,BRC,WNL,WNR,BRB,WNL
-    .BYTE BRA,WNL,WNR,BRB,WNL,WNR,BRB,WNL,WNR,BRA,WNL,WNR,BRA,WNL,WNR,BRC,WNL,WNR,BRB,WNL
-    .BYTE FLW,FLW,FLW,FLW,FLW,FLW,FLW,FLW,FLW,FLW,FLW,FLW,FLW,FLW,FLW,FLW,FLW,FLW,FLW,FLW
-
-map_len = * - map
-
-.IF map_len > 255
-    .ERROR "Map too big for X-indexed display_map"
-.ENDIF
-.IF map_len*2 > screen_len
-    .ERROR "Map bigger than screen memory"
+.IF view_w*2*map_h > screen_len
+    .ERROR "View bigger than screen memory"
 .ENDIF
 
 .IF * > charset
@@ -95,5 +79,13 @@ map_len = * - map
 .INCLUDE "gfx.asm"
 .INCLUDE "pmg.asm"
 .INCLUDE "pmgdata.asm"
+
+; ----------- Map area -----------
+    * = map_area
+.INCLUDE "maps/university_outside.asm"
+.IF * - map_area > map_area_len
+    .ERROR "Map bigger than the map area"
+.ENDIF
+
 ; ----------- Run the program -----------
     .RUN start

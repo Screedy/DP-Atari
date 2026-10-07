@@ -6,6 +6,10 @@ pmg_p1 = pmg + $280
 pmg_p2 = pmg + $300
 pmg_p3 = pmg + $380
 
+.IF pmg & $3FF
+    .ERROR "PMG must be 1 KB aligned (PMBASE, double-line resolution)"
+.ENDIF
+
 ; Function: clear_pmg
 ; Description: Clear the player/missile graphics memory
 ; INPUT: none

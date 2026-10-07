@@ -16,3 +16,20 @@ tile_left
     .BYTE 0, 5, 7, 9, 2, 3, 130, 131, 11
 tile_right
     .BYTE 0, 6, 8, 10, 3, 4, 131, 132, 12
+
+; draw_tile - write one tile (2 chars) to the screen and move to the next position
+; INPUT: A = tile ID, ZP_DST = screen position
+; OUTPUT: ZP_DST += 2
+; DESTROYED: A, Y
+draw_tile
+    tay
+    lda tile_right,y
+    pha                 ; keep right char
+    lda tile_left,y
+    ldy #0
+    sta (ZP_DST),y      ; left char
+    pla
+    iny
+    sta (ZP_DST),y      ; right char
+    ADW ZP_DST #2
+    rts

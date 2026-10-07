@@ -32,3 +32,17 @@
         .ENDIF
     .ENDIF
 .ENDM
+
+; Add an 8-bit value to a 16-bit word in memory (carry goes into the high byte)
+; INPUT: %1 = word address, %2 = value (#const or address)
+; OUTPUT: none
+; DESTROYED: A, carry
+.MACRO ADW
+    clc
+    lda %1
+    adc %2
+    sta %1
+    lda %1+1
+    adc #0
+    sta %1+1
+.ENDM
