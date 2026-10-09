@@ -8,21 +8,28 @@
 
 ?antic2 = 2              ; Antic mode 2
 ?antic5 = 5              ; Antic mode 5
+?row_bytes = canvas_w    ; canvas bytes per mode line (LMS on every line, scroll_lu/rd move them)
 
 setup_screen
     lda RTCLOK+2            ; $14 - frame counter
 ?wait
     cmp RTCLOK+2            ; čekat, až VBI proběhne
     beq ?wait
-    MWA ?dlist SDLSTL       ; teď je jistě čas do dalšího VBI, takže můžeme nastavit display list
+    MWA dlist SDLSTL       ; teď je jistě čas do dalšího VBI, takže můžeme nastavit display list
     rts
 
-?dlist
+dlist
     .BYTE ?blank8, ?blank8, ?blank8                            ; 24 blank lines
-    .BYTE ?antic5+?lms, <screen, >screen                      ; screen mode, address, left shift and right shift
-    .BYTE ?antic5, ?antic5, ?antic5, ?antic5, ?antic5, ?antic5
-    .BYTE ?antic5, ?antic5, ?antic5, ?antic5, ?antic5
-
-    .BYTE ?jvb, <?dlist, >?dlist                               ; Jump to vertical blank
-
-    .LOCAL
+    .BYTE ?antic5+?lms, <[canvas+0*?row_bytes], >[canvas+0*?row_bytes]
+    .BYTE ?antic5+?lms, <[canvas+1*?row_bytes], >[canvas+1*?row_bytes]
+    .BYTE ?antic5+?lms, <[canvas+2*?row_bytes], >[canvas+2*?row_bytes]
+    .BYTE ?antic5+?lms, <[canvas+3*?row_bytes], >[canvas+3*?row_bytes]
+    .BYTE ?antic5+?lms, <[canvas+4*?row_bytes], >[canvas+4*?row_bytes]
+    .BYTE ?antic5+?lms, <[canvas+5*?row_bytes], >[canvas+5*?row_bytes]
+    .BYTE ?antic5+?lms, <[canvas+6*?row_bytes], >[canvas+6*?row_bytes]
+    .BYTE ?antic5+?lms, <[canvas+7*?row_bytes], >[canvas+7*?row_bytes]
+    .BYTE ?antic5+?lms, <[canvas+8*?row_bytes], >[canvas+8*?row_bytes]
+    .BYTE ?antic5+?lms, <[canvas+9*?row_bytes], >[canvas+9*?row_bytes]
+    .BYTE ?antic5+?lms, <[canvas+10*?row_bytes], >[canvas+10*?row_bytes]
+    .BYTE ?antic5+?lms, <[canvas+11*?row_bytes], >[canvas+11*?row_bytes]
+    .BYTE ?jvb, <dlist, >dlist                               ; Jump to vertical blank
