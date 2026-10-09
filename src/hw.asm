@@ -26,3 +26,8 @@ PCOLR0 = $02C0          ; Player 0 color register
 PCOLR1 = $02C1          ; Player 1 color register
 PCOLR2 = $02C2          ; Player 2 color register
 PCOLR3 = $02C3          ; Player 3 color register
+
+STICK0 = $0278          ; Joystick 0 input register
+STRIG0 = $0284          ; Joystick 0 trigger register
+KBCODE = $D209          ; Keyboard code of the key currently/last pressed (POKEY)
+SKSTAT = $D20F          ; Serial/keyboard status (POKEY): bit 2 = 0 while a key is held
