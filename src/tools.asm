@@ -54,6 +54,23 @@ copy_mem
     rts
 ; ----------- end of function copy_mem -----------
 
+; delay - wait a number of frames (also lands the caller right after a vertical blank)
+; INPUT: A = frames to wait (1-255)
+; OUTPUT: none
+; DESTROYED: A, X
+    .LOCAL
+delay
+    tax
+?frame
+    lda RTCLOK+2            ; frame counter, changes every VBI
+?wait
+    cmp RTCLOK+2
+    beq ?wait
+    dex
+    bne ?frame
+    rts
+; ----------- end of function delay -----------
+
 ; TODO: This code has been retired, but I will leave it here while I test the new graphics loading method.
 ; Function: load_gfx
 ; Description: Load the character set and graphics data into memory
