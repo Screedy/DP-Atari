@@ -53,6 +53,7 @@ start
 game_loop
     lda #1
     jsr delay                   ; 1 frames between steps
+    jsr look_around             ; refresh up/down/left/right/on_tile before moving
     jsr read_input              ; A = direction bits, 0 = pressed (like STICK0)
     sta input
     and #stick_up

@@ -60,6 +60,20 @@ The walkable strip of the current room is defined by two map rows in `src/main.a
 
 The lowest position, `walk_y_max`, puts the whole sprite on the bottom walkable row. The highest position, `walk_y_min`, deliberately lets the sprite overlap the row above the walkable strip: only the last `feet_lines` lines of the sprite (2 lines, the legs and the boots) have to stand on the top walkable row, while the head and the body may cover the wall behind him. This gives the impression that the player is standing on the ground in front of the building rather than floating under it, and it gives him more room to move up and down. A build-time check makes sure that the distance between the two limits is a whole number of `step_y` steps, so the player always lands exactly on both limits.
 
+## Collision
+
+Inside rooms will contain walls, tables, doors and other objects the player must not walk through. Collision is tile based and follows the idea from EdVenture episode 13: before every step the program looks at the tiles directly around the player, and a move is refused if the tile it leads to is solid.
+
+Whether a tile is solid is not decided by its ID but by a small table of properties, `tile_flags` in `src/tiles.asm`. Every tile ID has one byte there, and bit 0 (`TILE_SOLID`) marks tiles the player cannot stand on. Today the empty tile is walkable and all building tiles (bricks, windows, the ground-floor glass) are solid. A table instead of a fixed rule such as "tile 1 is a wall" means that every new tile, whether a table, a cupboard or a door, simply gets its own flags when it is added, and later properties (for example "this tile is a door" or "this tile leads to another room") can use the remaining bits of the same byte. A build-time check makes sure the table has exactly one entry per tile.
+
+Once per pass of `game_loop`, before the controls are read, `look_around` in `src/player.asm` reads five tiles from the map into variables: the tile the player stands on (`on_tile`) and the tiles above, below, to the left and to the right of it (`up_tile`, `down_tile`, `left_tile`, `right_tile`). "Where the player stands" is decided by his feet, the last `feet_lines` lines of the sprite, because the rest of the sprite may overlap the row above (see the previous section). The routine converts the PMG line of the feet into a map row and remembers how far down inside that row the feet are (`feet_off`). It then points `ZP_SRC` at the tile above the player, `map_area + (row - 1) * map_w + scroll_x + player_col`, and reads all five tiles from that single pointer with different Y offsets: 0 for the tile above, `map_w - 1`, `map_w` and `map_w + 1` for the row of the feet, and `2 * map_w` for the tile below. Because Y is one byte, this works for maps up to 127 tiles wide, which a build-time check enforces.
+
+The movement routines use these values as follows. `player_left` and `player_right` refuse to move if `left_tile` or `right_tile` is solid; this blocks both walking on the screen and scrolling the map, because both move the player within the room. Vertical movement is finer than one tile, so `player_up` and `player_down` only consult the map when a step would move the feet into the neighbouring row. That happens only when the feet are at the very top of their row (`feet_off = 0`) and the player moves up, or at the very bottom (`feet_off = 8 - feet_lines`) and he moves down. Within a row the player moves freely. A build-time check ensures that the feet always fit inside one row, so these are the only two crossing points.
+
+This differs from Ed's version in three ways, all following from how our player moves. Ed's player always moves a whole tile and stays in the middle of the screen, so his position is simply a map column and row; ours walks across the screen and moves vertically in 2-line steps, so the map position is computed from `scroll_x`, `player_col` and the feet. Ed reads the neighbouring tiles while redrawing his screen; we do not redraw the screen, so a separate routine reads them. And Ed treats tile ID 1 as the wall, while we use the flags table described above.
+
+The row limits `walk_row_top` and `walk_row_bottom` remain as the outer bounds of the room. On `university_outside` the walkable rows contain only empty tiles, so collision never blocks anything there and the room behaves exactly as before; inside rooms will rely on solid tiles instead.
+
 ## Drawing the sprite
 
 Horizontal movement only changes the four `HPOSP` registers, which `set_player_x` does in a few instructions.
@@ -81,6 +95,7 @@ Vertical movement redraws the sprite: `draw_player` clears the PMG memory of all
 ## Limitations and next steps
 
 - Scrolling is coarse: the view jumps by one tile. Smooth scrolling would add the hardware fine-scroll register `HSCROL` and move the view by single colour clocks between the coarse steps.
-- The walkable area is a rectangle given by two row numbers. Rooms with obstacles, doors or irregular floors will need a per-tile "walkable" flag in the tile table instead.
+- Collision checks only the four neighbours of the tile under the feet. An object that should block the player only partly (for example the edge of a table) has to be a whole solid tile.
+- `on_tile` is read but not used yet; it is meant for doors and room exits.
 - `walk_row_top`, `walk_row_bottom`, `map_w` and `map_h` are assembly-time constants of the current room. When several rooms are loaded at run time, they will have to become values stored with each room.
 - There is no diagonal movement and no walking animation yet.

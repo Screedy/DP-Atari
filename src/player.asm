@@ -17,11 +17,31 @@ walk_y_max      = pmg_row0+walk_row_bottom*8    ; sprite top on the lowest walka
 .IF [walk_y_max-walk_y_min]-[walk_y_max-walk_y_min]/step_y*step_y
     .ERROR "walk range must be a multiple of step_y"
 .ENDIF
+.IF [8-feet_lines]-[8-feet_lines]/step_y*step_y
+    .ERROR "feet must stay inside one map row: 8-feet_lines must be a multiple of step_y"
+.ENDIF
+.IF map_w*2 > 255
+    .ERROR "look_around reads the row below with Y = 2*map_w: maps up to 127 tiles wide"
+.ENDIF
 
 player_col
     .BYTE view_w/2              ; screen column 0..view_w-1
 player_y
     .BYTE walk_y_min            ; PMG line of the sprite top
+
+; Tiles around the player's feet, refreshed by look_around (tile IDs, see tiles.asm)
+up_tile
+    .BYTE 0
+down_tile
+    .BYTE 0
+left_tile
+    .BYTE 0
+right_tile
+    .BYTE 0
+on_tile
+    .BYTE 0                     ; the tile the player stands on (for doors, exits, ... later)
+feet_off
+    .BYTE 0                     ; feet position inside their map row: 0 = top .. 8-feet_lines = bottom
 
 ; Function: player_left / player_right
 ; Description: Walk one tile; near the screen edge scroll the map instead (if the map can scroll)
@@ -30,6 +50,9 @@ player_y
 ; DESTROYED: A, X, Y, ZP_TMP
     .LOCAL
 player_left
+    lda left_tile
+    jsr is_solid
+    bne ?done                   ; wall/table on the left: don't move (neither walk nor scroll)
     lda player_col
     cmp #scroll_margin+1
     bcs ?walk                   ; far enough from the edge: just walk
@@ -48,6 +71,9 @@ player_left
 
     .LOCAL
 player_right
+    lda right_tile
+    jsr is_solid
+    bne ?done                   ; wall/table on the right: don't move (neither walk nor scroll)
     lda player_col
     cmp #view_w-1-scroll_margin
     bcc ?walk                   ; far enough from the edge: just walk
@@ -67,7 +93,8 @@ player_right
     rts
 
 ; Function: player_up / player_down
-; Description: Move step_y PMG lines, staying inside walk_y_min..walk_y_max
+; Description: Move step_y PMG lines, staying inside walk_y_min..walk_y_max; a step that would
+;              move the feet into the next map row is refused if that row's tile is solid
 ; INPUT: none
 ; OUTPUT: none
 ; DESTROYED: A, X, Y
@@ -76,6 +103,13 @@ player_up
     lda player_y
     cmp #walk_y_min
     beq ?done                   ; already on the top walkable row
+    lda feet_off
+    bne ?move                   ; feet not at the top of their row: the step stays inside the row
+    lda up_tile
+    jsr is_solid
+    bne ?done                   ; the row above is solid
+?move
+    lda player_y
     sec
     sbc #step_y
     sta player_y
@@ -88,11 +122,80 @@ player_down
     lda player_y
     cmp #walk_y_max
     beq ?done                   ; already on the bottom walkable row
+    lda feet_off
+    cmp #8-feet_lines
+    bne ?move                   ; feet not at the bottom of their row: the step stays inside the row
+    lda down_tile
+    jsr is_solid
+    bne ?done                   ; the row below is solid
+?move
+    lda player_y
     clc
     adc #step_y
     sta player_y
     jmp draw_player
 ?done
+    rts
+
+; Function: look_around
+; Description: Read the tiles around the player's feet into up/down/left/right/on_tile
+;              (the EdVenture ep. 13 idea). The feet decide where the player stands, because
+;              the rest of the sprite may overlap the row above.
+; INPUT: none (player_y, player_col, scroll_x)
+; OUTPUT: up_tile, down_tile, left_tile, right_tile, on_tile, feet_off
+; DESTROYED: A, X, Y, ZP_SRC, ZP_TMP
+    .LOCAL
+look_around
+    lda player_y
+    sec
+    sbc #pmg_row0-[8-feet_lines] ; A = PMG line of the feet top, counted from screen row 0
+    sta ZP_TMP
+    and #7
+    sta feet_off                ; position inside the row
+    lda ZP_TMP
+    lsr
+    lsr
+    lsr
+    tax                         ; X = map row of the feet
+    MWA [map_area-map_w] ZP_SRC ; ZP_SRC = start of the row above the feet:
+    cpx #0                      ;   map_area + (row-1)*map_w
+    beq ?col
+?row
+    ADW ZP_SRC #map_w
+    dex
+    bne ?row
+?col
+    lda scroll_x                ; + map column of the player
+    clc
+    adc player_col
+    sta ZP_TMP
+    ADW ZP_SRC ZP_TMP
+    ldy #0                      ; ZP_SRC points at the tile above the player
+    lda (ZP_SRC),y
+    sta up_tile
+    ldy #map_w-1                ; one row further, one column left
+    lda (ZP_SRC),y
+    sta left_tile
+    iny
+    lda (ZP_SRC),y
+    sta on_tile
+    iny
+    lda (ZP_SRC),y
+    sta right_tile
+    ldy #map_w*2                ; two rows further: below the player
+    lda (ZP_SRC),y
+    sta down_tile
+    rts
+
+; Function: is_solid
+; Description: Is this tile a wall/obstacle?
+; INPUT: A = tile ID
+; OUTPUT: Z flag: bne = solid, beq = walkable
+; DESTROYED: A, X
+is_solid
+    tax
+    lda tile_flags,x
+    and #TILE_SOLID
     rts
 
 ; Function: set_player_x

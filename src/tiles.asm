@@ -17,6 +17,20 @@ tile_left
 tile_right
     .BYTE 0, 6, 8, 10, 3, 4, 131, 132, 12
 
+; Properties of each tile (bit flags), same order as the tile IDs
+TILE_SOLID = %00000001          ; the player cannot stand on this tile (wall, table, ...)
+tile_flags
+    .BYTE 0                                     ; EMP
+    .BYTE TILE_SOLID, TILE_SOLID, TILE_SOLID    ; BRA, BRB, BRC
+    .BYTE TILE_SOLID, TILE_SOLID                ; WNL, WNR
+    .BYTE TILE_SOLID, TILE_SOLID                ; LWL, LWR
+    .BYTE TILE_SOLID                            ; FLW
+tile_flags_end
+
+.IF [tile_right-tile_left]-[tile_flags_end-tile_flags]
+    .ERROR "tile_flags needs one entry per tile"
+.ENDIF
+
 ; draw_tile - write one tile (2 chars) to the screen and move to the next position
 ; INPUT: A = tile ID, ZP_DST = screen position
 ; OUTPUT: ZP_DST += 2
