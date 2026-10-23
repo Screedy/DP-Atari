@@ -102,9 +102,9 @@ player_down
 ; DESTROYED: A
 set_player_x
     lda player_col
-    asl                         ; *8 color clocks per tile
-    asl
-    asl
+    asl                         ; *2
+    asl                         ; *4
+    asl                         ; *8
     clc
     adc #hpos_col0
     sta HPOSP0
@@ -120,17 +120,17 @@ set_player_x
 ; DESTROYED: A, X, Y
     .LOCAL
 draw_player
-    jsr clear_pmg
-    ldy player_y
-    ldx #0
+    jsr clear_pmg               ; clear old player sprite
+    ldy player_y                ; Y = where to draw the sprite (top PMG line)
+    ldx #0                      ; X = which line of pmgdata to read (0..7)
 ?loop
-    lda pmgdata,x
+    lda pmgdata,x               ; layer 0 (hair)
     sta pmg_p0,y
-    lda pmgdata+8,x
+    lda pmgdata+8,x             ; layer 1 (skin)
     sta pmg_p1,y
-    lda pmgdata+16,x
+    lda pmgdata+16,x            ; layer 2 (clothes)
     sta pmg_p2,y
-    lda pmgdata+24,x
+    lda pmgdata+24,x            ; layer 3 (boots)
     sta pmg_p3,y
     iny
     inx
