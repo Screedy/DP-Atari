@@ -61,6 +61,7 @@ Aplikace má tři hlavní stavy:
 │   ├── display_list.md         ; dokumentace display listů
 │   ├── player_movement.md      ; pohyb hráče a scrollování mapy
 │   ├── future_ideas.md         ; promyšlené nápady na později (tma / baterka)
+│   ├── design_decisions.md     ; porovnání variant a proč jsme zvolili kterou
 │   └── hardware_notes.md       ; poznámky k hardware registrům
 └── README.md
 ```

@@ -1,221 +1,276 @@
-; main.asm - Main program for Atari 8-bit
+; =====================================================================================
+; main.asm - main program: memory layout, start-up, game loop, input, scrolling
+; =====================================================================================
+;
+; This is the file that gets assembled; all other files are pulled in with .INCLUDE.
+;
+; NAME_LEN equates (e.g. canvas_len, ZP_SRC_LEN) tell tools/memmap.py how big an area
+; is, so it can reserve it and warn when something else is loaded on top of it.
 
-.INCLUDE "macros.asm"
+.INCLUDE "macros.asm"           ; macros first: they must be defined before they are used
 
-    * = $2000
+    * = $2000                   ; code starts here (above DOS, which ends below $2000)
+
+; -------------------------------------------------------------------------------------
+; Memory areas and room settings
+; -------------------------------------------------------------------------------------
 
 charset         = $5000         ; Charset memory start address
-canvas          = $4000         ; canvas memory start address
-map_area        = $8000         ; current room's tile map is loaded/copied here (outside the
+canvas          = $4000         ; Canvas memory start address
+map_area        = $8000         ; Current room's tile map is loaded/copied here (outside the
                                 ; 130XE bank window $4000-$7FFF, so maps can come from banks)
 map_area_len    = $2000         ; 8 KB reserved for maps; the biggest room must fit
 map_w           = 80            ; tiles per map row (current room)
-map_h           = 12            ; map rows
+map_h           = 12            ; map rows (current room)
 walk_row_top    = 9             ; walkable map rows (current room): grass, sidewalk
 walk_row_bottom = 10
 view_w          = 20            ; tiles visible on canvas (20 tiles = 40 chars)
+view_h          = 12            ; rows visible = mode lines in dlist.asm (set by the screen, not the map)
 canvas_w        = map_w*2       ; canvas bytes per row: the whole map row expanded (2 chars/tile)
-canvas_len      = canvas_w*map_h ; 12 rows x 160 B = 1920 B ($4000-$477F)
-                                ; increase when: the map gets wider or taller, or dlist.asm gets
-                                ; more mode lines; keep every row inside one 4 KB block (ANTIC)
+canvas_len      = canvas_w*map_h ; one canvas row (canvas_w bytes) per map row; follows the map size.
+                                ; The canvas must end before the charset, and no canvas row may
+                                ; cross a 4 KB boundary (ANTIC's address counter wraps there)
 pmg_len         = $400          ; PMG area size: 1 KB for double-line resolution
 pmg             = map_area-pmg_len  ; Player/Missile graphics, right below the map area ($7C00)
+
+; -------------------------------------------------------------------------------------
+; Zero page variables (fast to access; (ZP),Y indirect addressing only works with them)
+; -------------------------------------------------------------------------------------
 
 ZP_SRC          = $CB           ; source pointer (zero page, $CB-$CC)
 ZP_SRC_LEN      = 2             ; 16-bit pointer, never grows; add a new ZP_* name for more ZP space
 ZP_DST          = $CD           ; destination pointer (zero page, $CD-$CE)
 ZP_DST_LEN      = 2
-ZP_TMP          = $CF           ; scratch byte (scroll step)
+ZP_TMP          = $CF           ; scratch byte (scroll step, look_around)
 ZP_TMP_LEN      = 1
 
-stick_up        = %0001
+; -------------------------------------------------------------------------------------
+; Input constants
+; -------------------------------------------------------------------------------------
+
+stick_up        = %0001         ; STICK0 bits: a 0 bit means "pushed in this direction"
 stick_down      = %0010
 stick_left      = %0100
 stick_right     = %1000
 
 key_w           = $2E           ; KBCODE values (without SHIFT/CTRL bits)
-key_s           = $3E
+key_s           = $3E           ; (Atari keyboard codes, not ASCII)
 key_a           = $3F
 key_d           = $3A
 
-start
-    jsr setup_screen
-    jsr setup_colors
-;    jsr load_gfx
-    MVA #>charset CHBAS         ; Set character set base address
-    jsr clear_pmg
-    jsr setup_pmg
-    jsr display_map
-    jsr set_player_x
-    jsr draw_player
+; -------------------------------------------------------------------------------------
+; Start-up: runs once (the .RUN at the end of this file jumps here after loading)
+; -------------------------------------------------------------------------------------
 
+start
+    jsr setup_screen            ; switch to our display list (dlist.asm)
+    jsr setup_colors            ; charset and player colours (colors.asm)
+;    jsr load_gfx
+    MVA #>charset CHBAS         ; Set character set base address (high byte; charset is page aligned)
+    jsr clear_pmg               ; empty player/missile memory (pmg.asm)
+    jsr setup_pmg               ; turn PMG on (pmg.asm)
+    jsr display_map             ; expand the room's tile map onto the canvas
+    jsr set_player_x            ; put the sprite at its start column (player.asm)
+    jsr draw_player             ; draw the sprite at its start height (player.asm)
+
+; -------------------------------------------------------------------------------------
+; Game loop: runs forever, one step per pass
 ; Controls: joystick or W/A/S/D (held = keeps moving); one direction per step, no diagonals
+; -------------------------------------------------------------------------------------
+
 game_loop
-    lda #1
-    jsr delay                   ; 1 frames between steps
+    lda #1                      ; wait 1 frame: sets the speed and makes the following
+    jsr delay                   ; changes happen right after a vertical blank (no tearing)
     jsr look_around             ; refresh up/down/left/right/on_tile before moving
     jsr read_input              ; A = direction bits, 0 = pressed (like STICK0)
-    sta input
-    and #stick_up
-    beq go_up
+    sta input                   ; keep it: every "and" below destroys A
+    and #stick_up               ; up bit = 0?
+    beq go_up                   ; yes: move up
     lda input
-    and #stick_down
-    beq go_down
+    and #stick_down             ; down bit = 0?
+    beq go_down                 ; yes: move down
     lda input
-    and #stick_left
-    beq go_left
+    and #stick_left             ; left bit = 0?
+    beq go_left                 ; yes: move left
     lda input
-    and #stick_right
-    beq go_right
+    and #stick_right            ; right bit = 0?
+    beq go_right                ; yes: move right
     jmp game_loop               ; nothing pressed
 
 go_up
-    jsr player_up
+    jsr player_up               ; one step up (player.asm)
     jmp game_loop
 go_down
-    jsr player_down
-    jmp game_loop
+    jsr player_down             ; one step down
+    jmp game_loop               
 go_left
-    jsr player_left
+    jsr player_left             ; one tile left (or scroll)
     jmp game_loop
 go_right
-    jsr player_right
+    jsr player_right            ; one tile right (or scroll)
     jmp game_loop
 
 input
     .BYTE 0                     ; last read_input result
 
+; -------------------------------------------------------------------------------------
 ; Function: read_input
-; Description: Joystick 0 or a held W/A/S/D key, in STICK0 format
+; Description: Joystick 0 or a held W/A/S/D key, in STICK0 format, so the rest of the
+;              program doesn't care where the input came from. The keyboard is read
+;              from POKEY directly (not the OS buffer CH), so a held key keeps moving
+;              without the auto-repeat pause.
 ; INPUT: none
 ; OUTPUT: A = direction bits like STICK0 (bit 0 up, 1 down, 2 left, 3 right; 0 = pressed)
-; DESTROYED: A, X
+; DESTROYED: A
+; -------------------------------------------------------------------------------------
     .LOCAL
 read_input
-    lda SKSTAT
+    lda SKSTAT                  ; POKEY keyboard status
     and #%00000100              ; bit 2 = 0 while a key is held
     bne ?stick                  ; no key: use the joystick
-    lda KBCODE
+    lda KBCODE                  ; A = code of the held key
     and #%00111111              ; ignore SHIFT/CTRL
-    ldx #3
-?find
-    cmp ?keys,x
-    beq ?key
-    dex
-    bpl ?find
+    cmp #key_w                  ; W?
+    beq ?up
+    cmp #key_s                  ; S?
+    beq ?down
+    cmp #key_a                  ; A?
+    beq ?left
+    cmp #key_d                  ; D?
+    beq ?right
 ?stick
     lda STICK0                  ; no (known) key: joystick
     rts
-?key
-    lda ?masks,x
+?up
+    lda #%1110                  ; what STICK0 reads when pushed up
     rts
-?keys
-    .BYTE key_w, key_s, key_a, key_d
-?masks
-    .BYTE %1110, %1101, %1011, %0111    ; up, down, left, right
+?down
+    lda #%1101                  ; ... down
+    rts
+?left
+    lda #%1011                  ; ... left
+    rts
+?right
+    lda #%0111                  ; ... right
+    rts
 
 scroll_x
-    .BYTE 0                     ; first visible map column (tiles)
+    .BYTE 0                     ; first visible map column (tiles); 0..map_w-view_w
 
+; -------------------------------------------------------------------------------------
 ; Function: scroll_rd
-; Description: Scroll the view right/down by moving every LMS address in the display list forward
+; Description: Scroll the view right/down by moving every LMS address in the display list
+;              forward. Every mode line has its own LMS (dlist.asm): 3 bytes = mode byte,
+;              address low, address high. No character data is copied.
 ; INPUT: A = step in bytes (2 = one tile right, canvas_w = one row down)
 ; OUTPUT: none
 ; DESTROYED: A, X, Y, ZP_TMP
+; -------------------------------------------------------------------------------------
     .LOCAL
 scroll_rd
-    sta ZP_TMP
-    ldy #map_h                  ; 12 mode lines
+    sta ZP_TMP                  ; keep the step, A is needed in the loop
+    ldy #view_h                 ; one LMS address per mode line of the screen
     ldx #4                      ; dlist+4 = first LMS address (after 3x blank8 and the mode byte)
 ?loop
-    clc
-    lda dlist,x
-    adc ZP_TMP
+    clc                         ; plain addition
+    lda dlist,x                 ; address low byte
+    adc ZP_TMP                  ; + step
     sta dlist,x
-    inx
+    inx                         ; -> address high byte
     lda dlist,x
-    adc #0
+    adc #0                      ; + carry from the low byte
     sta dlist,x
-    inx
+    inx                         ; skip the next line's mode byte...
     inx                         ; next mode line (3 bytes each)
-    dey
-    bne ?loop
+    dey                         ; one line less
+    bne ?loop                   ; until every mode line is moved
     rts
 
+; -------------------------------------------------------------------------------------
 ; Function: scroll_lu
-; Description: Scroll the view left/up by moving every LMS address in the display list back
+; Description: Mirror of scroll_rd: scroll the view left/up by moving every LMS address back
 ; INPUT: A = step in bytes (2 = one tile left, canvas_w = one row up)
 ; OUTPUT: none
 ; DESTROYED: A, X, Y, ZP_TMP
+; -------------------------------------------------------------------------------------
     .LOCAL
 scroll_lu
-    sta ZP_TMP
-    ldy #map_h
-    ldx #4
+    sta ZP_TMP                  ; keep the step
+    ldy #view_h                 ; one LMS address per mode line of the screen
+    ldx #4                      ; first LMS address
 ?loop
-    sec
-    lda dlist,x
-    sbc ZP_TMP
+    sec                         ; plain subtraction (no borrow)
+    lda dlist,x                 ; address low byte
+    sbc ZP_TMP                  ; - step
     sta dlist,x
-    inx
+    inx                         ; -> address high byte
     lda dlist,x
-    sbc #0
+    sbc #0                      ; - borrow from the low byte
     sta dlist,x
-    inx
-    inx
-    dey
+    inx                         ; skip the next line's mode byte...
+    inx                         ; next mode line
+    dey                         ; one line less
     bne ?loop
     rts
 
+; -------------------------------------------------------------------------------------
 ; Function: display_map
-; Description: Expand the whole tile map onto the canvas (canvas row = map row)
+; Description: Expand the whole tile map onto the canvas (canvas row = map row).
+;              Done once per room; scrolling then only moves the display list.
 ; INPUT: none (reads map_area, writes canvas)
 ; OUTPUT: none
 ; DESTROYED: A, X, Y, ZP_SRC, ZP_DST
+; -------------------------------------------------------------------------------------
     .LOCAL
 display_map
     MWA map_area ZP_SRC        ; source: tile map
     MWA canvas ZP_DST          ; destination: canvas memory
-    MVA #map_h ?rows
+    MVA #map_h ?rows           ; rows to draw (X is busy with the columns)
 ?row
     ldx #map_w                 ; X = tiles left in this row
 ?tile
-    ldy #0
+    ldy #0                     ; (ZP),Y needs Y; 0 = the tile ZP_SRC points at
     lda (ZP_SRC),y             ; A = tile ID
-    jsr draw_tile              ; draw it, ZP_DST += 2
+    jsr draw_tile              ; draw it, ZP_DST += 2 (tiles.asm)
     ADW ZP_SRC #1              ; next tile
-    dex
+    dex                        ; one tile less in this row
     bne ?tile
-    dec ?rows
+    dec ?rows                  ; one row less
     bne ?row
     rts
 ?rows
-    .BYTE 0
+    .BYTE 0                    ; row counter
 
+; the canvas must hold the whole expanded map
 .IF canvas_w*map_h > canvas_len
     .ERROR "Map bigger than canvas memory"
 .ENDIF
 
-.INCLUDE "hw.asm"
-.INCLUDE "tools.asm"
-.INCLUDE "dlist.asm"
-.INCLUDE "colors.asm"
-.INCLUDE "tiles.asm"
-.INCLUDE "player.asm"
+; -------------------------------------------------------------------------------------
+; Other code files (assembled right after this code, still below the charset)
+; -------------------------------------------------------------------------------------
 
+.INCLUDE "hw.asm"               ; hardware/OS register names (before tools.asm, which uses RTCLOK)
+.INCLUDE "tools.asm"            ; delay, copy_mem, ATASCII conversion
+.INCLUDE "dlist.asm"            ; display list and setup_screen
+.INCLUDE "colors.asm"           ; setup_colors
+.INCLUDE "tiles.asm"            ; tile IDs, tile tables, draw_tile
+.INCLUDE "player.asm"           ; player movement, collision, drawing
+
+; code must end before the charset, or it would be overwritten by it
 .IF * > charset
     .ERROR "Charset memory overlap"
 .ENDIF
-.INCLUDE "gfx.asm"
-.INCLUDE "pmg.asm"
-.INCLUDE "pmgdata.asm"
+.INCLUDE "gfx.asm"              ; charset data (sets * = charset itself)
+.INCLUDE "pmg.asm"              ; PMG routines (assembled after the charset data)
+.INCLUDE "pmgdata.asm"          ; the player sprite
 
 ; ----------- Map area -----------
-    * = map_area
+    * = map_area                ; the room's tile map is loaded straight into the map area
 .INCLUDE "maps/university_outside.asm"
 .IF * - map_area > map_area_len
     .ERROR "Map bigger than the map area"
 .ENDIF
 
 ; ----------- Run the program -----------
-    .RUN start
+    .RUN start                  ; after loading, DOS jumps to start (writes RUNAD $02E0)
