@@ -37,11 +37,11 @@ FLW = 8         ; 11,12     bottom window row
 ; -------------------------------------------------------------------------------------
 ; Characters for each tile: left char, right char
 ; -------------------------------------------------------------------------------------
-;           EMP BRA BRB BRC WNL WNR LWL  LWR  FLW
+;             EMP  BRA  BRB  BRC  WNL  WNR  LWL  LWR  FLW
 tile_left
-    .BYTE 0, 5, 7, 9, 2, 3, 130, 131, 11
+    .BYTE     0,   5,   7,   9,   2,   3,   130, 131, 11
 tile_right
-    .BYTE 0, 6, 8, 10, 3, 4, 131, 132, 12
+    .BYTE     0,   6,   8,  10,   3,   4,   131, 132, 12
 
 ; -------------------------------------------------------------------------------------
 ; Properties of each tile (bit flags), same order as the tile IDs
