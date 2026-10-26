@@ -64,5 +64,5 @@ setup_pmg
                                 ;   bit 4    = 0   double-line PMG resolution
                                 ;   bit 5    = 1   display list DMA on (the screen is shown)
     MVA #3 GRACTL               ; GTIA: bit 0 = show missiles, bit 1 = show players
-    MVA #1 GRPRIOR              ; priority: players in front of the playfield (the background)
+    MVA #1 GPRIOR               ; priority: players in front of the playfield (the background)
     rts                         ; horizontal position: set_player_x (player.asm)
