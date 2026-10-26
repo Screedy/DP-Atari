@@ -85,7 +85,7 @@ player_left
     jsr is_solid                ; is it a wall/table?
     bne ?done                   ; yes: don't move (neither walk nor scroll)
     lda player_col              ; A = screen column of the player
-    cmp #scroll_margin+1        ; compare with 7 (carry set if player_col >= 7)
+    cmp #scroll_margin+1        ; carry set if player_col > scroll_margin
     bcs ?walk                   ; far enough from the edge: just walk
     lda scroll_x                ; near the edge: can the map still scroll left?
     beq ?walk                   ; no, map already at its left end: walk to the edge
@@ -114,17 +114,17 @@ player_right
     jsr is_solid                ; is it a wall/table?
     bne ?done                   ; yes: don't move (neither walk nor scroll)
     lda player_col              ; A = screen column of the player
-    cmp #view_w-1-scroll_margin ; compare with 13 (carry clear if player_col < 13)
+    cmp #view_w-1-scroll_margin ; carry clear if player_col is more than scroll_margin from the right edge
     bcc ?walk                   ; far enough from the edge: just walk
     lda scroll_x                ; near the edge: can the map still scroll right?
-    cmp #map_w-view_w           ; last possible scroll position = 80 - 20 = 60
+    cmp #map_w-view_w           ; last possible scroll position (right end of the map on screen)
     beq ?walk                   ; no, map already at its right end: walk to the edge
     inc scroll_x                ; yes: the view starts one map column later
     lda #2                      ; 1 tile = 2 chars
     jmp scroll_rd               ; move the display list 2 chars right (its rts returns to our caller)
 ?walk
     lda player_col              ; A = screen column
-    cmp #view_w-1               ; last screen column = 19
+    cmp #view_w-1               ; last screen column
     beq ?done                   ; already there: nowhere to go
     inc player_col              ; one column to the right
     jmp set_player_x            ; move the sprite there (its rts returns to our caller)
@@ -172,7 +172,7 @@ player_down
     cmp #walk_y_max             ; already at the lowest allowed position?
     beq ?done                   ; yes: stop
     lda feet_off                ; where are the feet inside their row?
-    cmp #8-feet_lines           ; at the bottom of the row? (6 with 2 feet lines)
+    cmp #8-feet_lines           ; at the bottom of the row? (feet end on the row's last line)
     bne ?move                   ; no: the step stays inside the row, always ok
     lda down_tile               ; yes: the step would enter the row below
     jsr is_solid                ; is that tile a wall/table?
@@ -265,13 +265,13 @@ is_solid
 ; -------------------------------------------------------------------------------------
 ; Function: set_player_x
 ; Description: Put all 4 players at screen column player_col
-;              (HPOS = hpos_col0 + player_col * 8; max 48 + 19*8 = 200, fits in a byte)
+;              (HPOS = hpos_col0 + player_col * 8; even the last screen column fits in a byte)
 ; INPUT: none (player_col)
 ; OUTPUT: none (HPOSP0-3 set)
 ; DESTROYED: A
 ; -------------------------------------------------------------------------------------
 set_player_x
-    lda player_col              ; A = screen column (0..19)
+    lda player_col              ; A = screen column (0..view_w-1)
     asl                         ; *2
     asl                         ; *4
     asl                         ; *8 color clocks per tile
