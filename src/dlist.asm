@@ -6,7 +6,7 @@
 ; part of the screen from top to bottom: blank lines, or a "mode line" (one row of
 ; characters) together with where in memory its characters are.
 ;
-; Our screen: 24 blank lines, then 12 mode lines of ANTIC mode 5 (40 chars, 16 scanlines
+; Our screen: 24 blank lines, then 12 mode lines of ANTIC mode 5 (48 chars wide playfield, 16 scanlines
 ; each, 4 colours + 1 via inverse chars). Every mode line has its own LMS (Load Memory
 ; Scan) address pointing at its row of the canvas. Scrolling (scroll_lu/rd in main.asm)
 ; works by changing these 12 addresses, so their layout matters:
@@ -35,7 +35,7 @@
                                 ; display list's start; ends the screen, starts again next frame
 
 ?antic2 = 2                     ; ANTIC mode 2: text, 40 chars, 8 scanlines, 2 colours (not used)
-?antic5 = 5                     ; ANTIC mode 5: 40 chars, 16 scanlines, 4 colours (+1 inverse)
+?antic5 = 5                     ; ANTIC mode 5: 40 chars (48 wide), 16 scanlines, 4 colours (+1 inverse)
 ?row_bytes = canvas_w           ; canvas bytes per mode line (LMS on every line, scroll_lu/rd move them)
 
 ; -------------------------------------------------------------------------------------

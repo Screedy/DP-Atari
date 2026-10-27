@@ -12,9 +12,9 @@ The player is controlled either with joystick 0 or with the keys W, A, S and D. 
 
 A room is stored as a tile map in the reserved map area (`map_area`, `$8000`). Every byte of the map is a tile ID, and every tile is two characters placed side by side (see `src/tiles.asm`). `university_outside` is 80 tiles wide and 12 rows tall.
 
-When a room is entered, `display_map` expands the whole tile map once into the canvas (`canvas`, `$4000`). The canvas therefore holds the complete room as characters: 12 rows of 160 characters each, 1920 bytes in total. The screen uses ANTIC mode 5, which shows 40 characters (20 tiles) per row and 12 rows, so only a window of 20 tiles out of the 80 is visible at any time.
+When a room is entered, `display_map` expands the whole tile map once into the canvas (`canvas`, `$4000`). The canvas therefore holds the complete room as characters: 12 rows of 160 characters each, 1920 bytes in total. The screen uses ANTIC mode 5 with the wide playfield, which shows 48 characters (24 tiles) per row and 12 rows, so only a window of 24 tiles out of the 80 is visible at any time. The wide playfield is used because the screen border to the left and right of the normal 40-character playfield always shows the background colour; with colour zones (DLIs) that looked like an extra strip of sky or grass beside the map. The wide playfield covers that border with map graphics. The outermost tile on each side lies partly in the TV overscan, so it is only partly visible.
 
-Which part of the canvas is visible is decided by the display list in `src/dlist.asm`. Every one of its 12 mode lines has its own LMS (Load Memory Scan) address that tells ANTIC where in memory that line starts. Initially line *r* points at `canvas + r * 160`, which shows the leftmost 20 tiles of the room.
+Which part of the canvas is visible is decided by the display list in `src/dlist.asm`. Every one of its 12 mode lines has its own LMS (Load Memory Scan) address that tells ANTIC where in memory that line starts. Initially line *r* points at `canvas + r * 160`, which shows the leftmost 24 tiles of the room.
 
 We expand the whole room into the canvas up front instead of drawing only the visible part, because it makes scrolling almost free. To scroll, the program only has to add or subtract a number from twelve addresses in the display list; no character data has to be copied while the game is running. The price is memory (1920 bytes instead of 480 for a single screen), which we can afford, and a rule that no canvas row may cross a 4 KB boundary, because ANTIC's address counter wraps around at 4 KB. With the canvas at `$4000-$477F` this rule is satisfied.
 
@@ -24,7 +24,7 @@ The player sprite is built from all four players placed on top of each other, ea
 
 The program uses two kinds of player coordinates, one for each axis.
 
-**Horizontally** the position is a screen column, `player_col`, in tiles (0 to 19). A tile is two characters, an ANTIC mode 5 character is 4 colour clocks wide, so a tile is 8 colour clocks wide, and a normal-width player is also exactly 8 colour clocks wide. One tile therefore equals one player width, which is why the player moves one tile at a time. The hardware position is computed by `set_player_x` as `HPOS = 48 + 8 * player_col`, where 48 is the horizontal position of the left edge of the normal-width playfield.
+**Horizontally** the position is a screen column, `player_col`, in tiles (0 to 23). A tile is two characters, an ANTIC mode 5 character is 4 colour clocks wide, so a tile is 8 colour clocks wide, and a normal-width player is also exactly 8 colour clocks wide. One tile therefore equals one player width, which is why the player moves one tile at a time. The hardware position is computed by `set_player_x` as `HPOS = 32 + 8 * player_col`, where 32 is the horizontal position of the left edge of the wide playfield.
 
 **Vertically** the position is `player_y`, the PMG line on which the top of the sprite is drawn. The program uses double-line PMG resolution (bit 4 of `SDMCTL` is 0), so one PMG line covers two scanlines. One character row of ANTIC mode 5 is 16 scanlines tall, which is 8 PMG lines, which is exactly the height of the sprite. The display list starts with three blocks of 8 blank lines, which places screen row 0 at scanline 32, that is PMG line 16. Screen row *r* therefore starts at PMG line `16 + 8 * r`. This first value is the constant `pmg_row0` in `src/player.asm`.
 
@@ -46,11 +46,11 @@ The `delay` at the start of the loop has two purposes. It sets the speed of the 
 
 `player_left` and `player_right` decide, for every step, whether the player moves on the screen or the room moves under him. The rule is the same in both directions.
 
-If the player is still more than `scroll_margin` tiles (6) away from the screen edge he is walking towards, he simply moves one tile on the screen. If he has reached that margin and the room can still scroll in that direction, the room scrolls by one tile instead and the player stays where he is on the screen. If the room cannot scroll any further, because `scroll_x` is already 0 on the left or 60 (`map_w - view_w`) on the right, the player walks on towards the screen edge and stops in the very first or very last column.
+If the player is still more than `scroll_margin` tiles (6) away from the screen edge he is walking towards, he simply moves one tile on the screen. If he has reached that margin and the room can still scroll in that direction, the room scrolls by one tile instead and the player stays where he is on the screen. If the room cannot scroll any further, because `scroll_x` is already 0 on the left or 56 (`map_w - view_w`) on the right, the player walks on towards the screen edge. He stops one column before the edge (`edge_tiles`), because the outermost column is partly hidden in the overscan.
 
 Scrolling by one tile means moving the view by two characters. `scroll_rd` adds 2 to all twelve LMS addresses in the display list, and `scroll_lu` subtracts 2 from them; `scroll_x` is increased or decreased accordingly. The same two routines can also scroll by a whole row (`canvas_w` bytes), which is why they are named "right/down" and "left/up", but vertical scrolling is not used because the room is exactly one screen tall.
 
-We chose "the player walks, the room follows" over keeping the player fixed in the middle of the screen. A fixed player is simpler, but it would never be able to reach the first and last ten tiles of the room, and those are where entrances and room exits will be. The margin of six tiles keeps some of the room visible ahead of the player in the direction he is walking.
+We chose "the player walks, the room follows" over keeping the player fixed in the middle of the screen. A fixed player is simpler, but it would never be able to reach the first and last twelve tiles of the room, and those are where entrances and room exits will be. The margin of six tiles keeps some of the room visible ahead of the player in the direction he is walking.
 
 ## Walking up and down
 
@@ -89,7 +89,8 @@ Vertical movement redraws the sprite: `draw_player` clears the PMG memory of all
 | `step_y` | `player.asm` | 2 | PMG lines per vertical step. |
 | `feet_lines` | `player.asm` | 2 | Sprite lines that must stand on the top walkable row. |
 | `pmg_row0` | `player.asm` | 16 | PMG line of screen row 0. Calibration value: if the sprite appears a few lines off, adjust this. |
-| `hpos_col0` | `player.asm` | 48 | Horizontal position of screen column 0. |
+| `hpos_col0` | `player.asm` | 32 | Horizontal position of screen column 0 (left edge of the wide playfield). |
+| `edge_tiles` | `player.asm` | 1 | Columns per screen side the player does not walk onto (partly hidden in the overscan). |
 | delay in `game_loop` | `main.asm` | 1 | Frames per step; higher means slower movement. |
 
 ## Limitations and next steps

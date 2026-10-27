@@ -6,9 +6,10 @@
 ; each other, each one adds one colour (hair, skin, clothes, boots). See docs/player_movement.md
 ; for the full explanation of how and why the movement works this way.
 ;
-; Geometry (ANTIC mode 5, normal-width playfield, double-line PMG resolution):
+; Geometry (ANTIC mode 5, wide playfield, double-line PMG resolution):
 ;   1 tile     = 2 chars = 8 color clocks = exactly one player width
-;                -> screen column c (0..19) is at HPOS 48 + 8*c
+;                -> screen column c (0..view_w-1) is at HPOS 32 + 8*c
+;                   (the outermost column on each side is partly hidden by the TV overscan)
 ;   1 char row = 16 scanlines = 8 PMG lines = exactly the sprite height
 ;                -> screen row r (0..11) starts at PMG line 16 + 8*r
 ;
@@ -22,7 +23,9 @@
 
 pmg_row0        = 16            ; PMG line of screen row 0 (3x blank8 -> scanline 32 -> /2)
                                 ; calibration knob: if the sprite is a few lines off, tweak this
-hpos_col0       = 48            ; HPOS of screen column 0 (left edge of the normal playfield)
+hpos_col0       = 32            ; HPOS of screen column 0 (left edge of the wide playfield)
+edge_tiles      = 1             ; tiles per side partly hidden in the TV overscan: the player
+                                ;   doesn't walk onto them
 scroll_margin   = 6             ; while the map can scroll, keep the player this many tiles from the edge
 step_y          = 2             ; PMG lines per vertical step
 feet_lines      = 2             ; sprite lines that must stand on the walkable rows (legs + boots);
@@ -94,7 +97,8 @@ player_left
     jmp scroll_lu               ; move the display list 2 chars left (its rts returns to our caller)
 ?walk
     lda player_col              ; A = screen column
-    beq ?done                   ; already at screen column 0: nowhere to go
+    cmp #edge_tiles             ; first fully visible column
+    beq ?done                   ; already there: nowhere to go
     dec player_col              ; one column to the left
     jmp set_player_x            ; move the sprite there (its rts returns to our caller)
 ?done
@@ -124,7 +128,7 @@ player_right
     jmp scroll_rd               ; move the display list 2 chars right (its rts returns to our caller)
 ?walk
     lda player_col              ; A = screen column
-    cmp #view_w-1               ; last screen column
+    cmp #view_w-1-edge_tiles    ; last fully visible column
     beq ?done                   ; already there: nowhere to go
     inc player_col              ; one column to the right
     jmp set_player_x            ; move the sprite there (its rts returns to our caller)

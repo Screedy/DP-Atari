@@ -24,7 +24,7 @@ map_w           = 80            ; tiles per map row (current room)
 map_h           = 12            ; map rows (current room)
 walk_row_top    = 9             ; walkable map rows (current room): grass, sidewalk
 walk_row_bottom = 10
-view_w          = 20            ; tiles visible on canvas (20 tiles = 40 chars)
+view_w          = 24            ; tiles shown per row (24 tiles = 48 chars, wide playfield)
 view_h          = 12            ; rows visible = mode lines in dlist.asm (set by the screen, not the map)
 canvas_w        = map_w*2       ; canvas bytes per row: the whole map row expanded (2 chars/tile)
 canvas_len      = canvas_w*map_h ; one canvas row (canvas_w bytes) per map row; follows the map size.

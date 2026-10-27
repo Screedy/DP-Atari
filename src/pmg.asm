@@ -57,8 +57,9 @@ clear_pmg
     .LOCAL
 setup_pmg
     MVA #>pmg PMBASE            ; PMG memory address (high byte only, see the alignment check)
-    MVA #46 SDMCTL              ; DMA control, 46 = %00101110:
-                                ;   bits 0-1 = 10  normal playfield width (40 chars)
+    MVA #47 SDMCTL              ; DMA control, 47 = %00101111:
+                                ;   bits 0-1 = 11  wide playfield (48 chars): covers the side borders,
+                                ;                  which would otherwise show the background colour
                                 ;   bit 2    = 1   missile DMA on
                                 ;   bit 3    = 1   player DMA on
                                 ;   bit 4    = 0   double-line PMG resolution
