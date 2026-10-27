@@ -3,3 +3,4 @@ materials
 /trials
 asm-symbols.json
 memmap.txt
+.atasm/

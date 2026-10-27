@@ -1,0 +1,16 @@
+# Build check on the Forgejo runner: assemble, no warnings, no memory conflicts, tool tests.
+# All the work is in tools/ci.sh (the same script runs on GitHub and locally).
+# Forgejo uses this folder and then ignores .github/workflows, so nothing runs twice.
+name: build
+on:
+  push:
+  pull_request:
+jobs:
+  build:
+    runs-on: docker               # label of your Forgejo runner; change it if yours is named differently
+    container:
+      image: node:20-bookworm     # Debian with gcc, make, zlib headers, curl, python3 (+ node for checkout)
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build and check
+        run: sh tools/ci.sh

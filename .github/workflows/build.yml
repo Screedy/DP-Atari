@@ -1,0 +1,13 @@
+# Build check on GitHub (the repository is mirrored from Forgejo):
+# assemble, no warnings, no memory conflicts, tool tests. All the work is in tools/ci.sh.
+name: build
+on:
+  push:
+  pull_request:
+jobs:
+  build:
+    runs-on: ubuntu-latest        # has gcc, make, zlib headers, curl and python3
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build and check
+        run: sh tools/ci.sh
