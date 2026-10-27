@@ -11,6 +11,9 @@
 ;   $02C0-$02C3  PCOLR0-3  player 0-3 colours
 ;   $02C4-$02C8  COLOR0-4  screen colours (which pixel values use them: see ?palette)
 
+; Rooms override the screen colours (COLOR0-4) with their own palette and DLI colour
+; zones (see rooms/*.asm); the screen palette here is only the default before that.
+
     .LOCAL                      ; ?names below are local to this file
 
 ; -------------------------------------------------------------------------------------

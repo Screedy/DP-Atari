@@ -65,6 +65,7 @@ key_d           = $3A
 start
     jsr setup_screen            ; switch to our display list (dlist.asm)
     jsr setup_colors            ; charset and player colours (colors.asm)
+    jsr setup_university_outside_colors ; this room's palette + DLI colour zones (rooms/)
 ;    jsr load_gfx
     MVA #>charset CHBAS         ; Set character set base address (high byte; charset is page aligned)
     jsr clear_pmg               ; empty player/missile memory (pmg.asm)
@@ -256,6 +257,7 @@ display_map
 .INCLUDE "colors.asm"           ; setup_colors
 .INCLUDE "tiles.asm"            ; tile IDs, tile tables, draw_tile
 .INCLUDE "player.asm"           ; player movement, collision, drawing
+.INCLUDE "rooms/university_outside.asm" ; room colours: DLI zones
 
 ; code must end before the charset, or it would be overwritten by it
 .IF * > charset

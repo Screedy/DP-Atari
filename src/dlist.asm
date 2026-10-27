@@ -17,6 +17,9 @@
 ;   dlist+6..8    mode line 1: mode byte, address low, address high (3 bytes per line)
 ;   ...
 ;   last 3 bytes  JVB back to dlist
+;
+; DLIs: mode lines 3, 7 and 8 have the ?dli bit, for the colour zones of university_outside
+; (handlers in rooms/university_outside.asm). Other rooms will need their own DLI lines.
 
     .LOCAL                      ; ?names below are local to this file
 
@@ -26,6 +29,8 @@
 ?blank8 = $70                   ; 8 blank scanlines
 ?lms = $40                      ; Load Memory Scan: add to a mode; the next 2 bytes are the
                                 ; address of this line's characters
+?dli = $80                      ; Display List Interrupt: add to a mode line; the CPU gets an
+                                ; interrupt during its last scanline (colour changes for the next line)
 ?jvb = $41                      ; Jump and wait for Vertical Blank: the next 2 bytes are the
                                 ; display list's start; ends the screen, starts again next frame
 
@@ -58,12 +63,12 @@ dlist
     .BYTE ?antic5+?lms, <[canvas+0*?row_bytes], >[canvas+0*?row_bytes]     ; mode line 0 = canvas row 0
     .BYTE ?antic5+?lms, <[canvas+1*?row_bytes], >[canvas+1*?row_bytes]     ; mode line 1 = canvas row 1
     .BYTE ?antic5+?lms, <[canvas+2*?row_bytes], >[canvas+2*?row_bytes]
-    .BYTE ?antic5+?lms, <[canvas+3*?row_bytes], >[canvas+3*?row_bytes]
+    .BYTE ?antic5+?lms+?dli, <[canvas+3*?row_bytes], >[canvas+3*?row_bytes] ; DLI: top -> building colours (rows 4-7)
     .BYTE ?antic5+?lms, <[canvas+4*?row_bytes], >[canvas+4*?row_bytes]
     .BYTE ?antic5+?lms, <[canvas+5*?row_bytes], >[canvas+5*?row_bytes]
     .BYTE ?antic5+?lms, <[canvas+6*?row_bytes], >[canvas+6*?row_bytes]
-    .BYTE ?antic5+?lms, <[canvas+7*?row_bytes], >[canvas+7*?row_bytes]
-    .BYTE ?antic5+?lms, <[canvas+8*?row_bytes], >[canvas+8*?row_bytes]
+    .BYTE ?antic5+?lms+?dli, <[canvas+7*?row_bytes], >[canvas+7*?row_bytes] ; DLI: -> ground floor colours (row 8)
+    .BYTE ?antic5+?lms+?dli, <[canvas+8*?row_bytes], >[canvas+8*?row_bytes] ; DLI: -> ground colours (rows 9-11)
     .BYTE ?antic5+?lms, <[canvas+9*?row_bytes], >[canvas+9*?row_bytes]
     .BYTE ?antic5+?lms, <[canvas+10*?row_bytes], >[canvas+10*?row_bytes]
     .BYTE ?antic5+?lms, <[canvas+11*?row_bytes], >[canvas+11*?row_bytes]   ; last mode line
