@@ -14,3 +14,9 @@ jobs:
       - uses: actions/checkout@v4
       - name: Build and check
         run: sh tools/ci.sh
+      - name: Upload the built program
+        uses: https://code.forgejo.org/forgejo/upload-artifact@v4   # Forgejo's fork (the GitHub one needs GitHub's servers)
+        with:
+          name: main-xex
+          path: out/main.xex
+          if-no-files-found: error
