@@ -1,39 +1,60 @@
-; pmgdata.asm
-pmgdata
+; =====================================================================================
+; pmgdata.asm - the player sprite: 4 layers of 8 lines, one layer per player
+; =====================================================================================
+;
+; Format: 1 byte = 1 sprite line, 8 pixels, 1 bit per pixel (1 = coloured, 0 = see-through),
+; highest bit = leftmost pixel. 8 lines per layer; in double-line PMG resolution every
+; line is 2 scanlines tall. draw_player (player.asm) copies layer N into player N memory,
+; and all 4 players are drawn at the same position, so the layers add up to one picture.
+; The colour of each layer is set in colors.asm (PCOLR0-3).
+;
+; The whole sprite (H = hair, S = skin, C = clothes, K = black: eyes and boots):
+;   line 0  ..HHHH..
+;   line 1  .HSSSS..
+;   line 2  .HSKSK..
+;   line 3  ..SSSS..
+;   line 4  .CCCCCC.
+;   line 5  S.CCCC.S
+;   line 6  ..C..C..   <- feet (feet_lines in player.asm)
+;   line 7  ..K..K..   <- feet (feet_lines in player.asm)
+;
+; Layer order matters: draw_player reads layer 0 at pmgdata, layer 1 at pmgdata+8, ...
 
-; PCOLOR0 - Brown
-    .BYTE %00111100
-    .BYTE %01000000
-    .BYTE %01000000
-    .BYTE %00000000
-    .BYTE %00000000
-    .BYTE %00000000
-    .BYTE %00000000
-    .BYTE %00000000
-; PCOLOR1 - Peach
-    .BYTE %00000000
-    .BYTE %00111100
-    .BYTE %00101000
-    .BYTE %00111100
-    .BYTE %00000000
-    .BYTE %10000001
-    .BYTE %00000000
-    .BYTE %00000000
-; PCOLOR2 - Light Blue
-    .BYTE %00000000
-    .BYTE %00000000
-    .BYTE %00000000
-    .BYTE %00000000
-    .BYTE %01111110
-    .BYTE %00111100
-    .BYTE %00100100
-    .BYTE %00000000
-; PCOLOR3 - Black
-    .BYTE %00000000
-    .BYTE %00000000
-    .BYTE %00010100
-    .BYTE %00000000
-    .BYTE %00000000
-    .BYTE %00000000
-    .BYTE %00000000
-    .BYTE %00100100
+pmgdata                         ; draw_player reads from here
+
+; Layer 0 = player 0, PCOLR0 - Brown: hair
+    .BYTE %00111100     ; line 0  ..####..
+    .BYTE %01000000     ; line 1  .#......
+    .BYTE %01000000     ; line 2  .#......
+    .BYTE %00000000     ; line 3  ........
+    .BYTE %00000000     ; line 4  ........
+    .BYTE %00000000     ; line 5  ........
+    .BYTE %00000000     ; line 6  ........
+    .BYTE %00000000     ; line 7  ........
+; Layer 1 = player 1, PCOLR1 - Peach: skin (face, hands)
+    .BYTE %00000000     ; line 0  ........
+    .BYTE %00111100     ; line 1  ..####..
+    .BYTE %00101000     ; line 2  ..#.#...
+    .BYTE %00111100     ; line 3  ..####..
+    .BYTE %00000000     ; line 4  ........
+    .BYTE %10000001     ; line 5  #......#
+    .BYTE %00000000     ; line 6  ........
+    .BYTE %00000000     ; line 7  ........
+; Layer 2 = player 2, PCOLR2 - Light Blue: clothes
+    .BYTE %00000000     ; line 0  ........
+    .BYTE %00000000     ; line 1  ........
+    .BYTE %00000000     ; line 2  ........
+    .BYTE %00000000     ; line 3  ........
+    .BYTE %01111110     ; line 4  .######.
+    .BYTE %00111100     ; line 5  ..####..
+    .BYTE %00100100     ; line 6  ..#..#..
+    .BYTE %00000000     ; line 7  ........
+; Layer 3 = player 3, PCOLR3 - Black: eyes and boots
+    .BYTE %00000000     ; line 0  ........
+    .BYTE %00000000     ; line 1  ........
+    .BYTE %00010100     ; line 2  ...#.#..
+    .BYTE %00000000     ; line 3  ........
+    .BYTE %00000000     ; line 4  ........
+    .BYTE %00000000     ; line 5  ........
+    .BYTE %00000000     ; line 6  ........
+    .BYTE %00100100     ; line 7  ..#..#..
