@@ -55,6 +55,8 @@ Aplikace má tři hlavní stavy:
 │   └── music/                  ; POKEY hudební data
 ├── tools/
 │   ├── charset_editor/         ; pomocný nástroj pro editaci fontu
+│   ├── memmap.py               ; paměťová mapa sestaveného .xex (-v/-vv/-vvv diagram, -d jen diagram)
+│   ├── mapview.py              ; náhled mapy z dlaždic (python3 tools/mapview.py src/maps/<mapa>.asm)
 │   └── run-atari.sh            ; macOS: spuštění sestaveného .xex v Atari800MacX
 ├── docs/
 │   ├── memory_map.md           ; přehled paměťové mapy aplikace
