@@ -11,7 +11,8 @@
 ; the same order as the IDs.
 ;
 ; How to add a new tile:
-;   1. give it the next free ID below (3-letter name, so map rows stay readable)
+;   1. give it the next free ID below (3-letter name, so map rows stay readable;
+;      not a 6502 instruction name like CLD, CLC, ADC, AND, ... - atasm rejects those)
 ;   2. add its left character to tile_left and its right character to tile_right
 ;   3. add its properties to tile_flags (0 = walkable, TILE_SOLID = blocks the player)
 ;   4. use the name in a map file
@@ -32,16 +33,24 @@ WNL = 4         ; 2,3       window, left half
 WNR = 5         ; 3,4       window, right half
 LWL = 6         ; 130,131   lit window, left half (inverse = 5th color)
 LWR = 7         ; 131,132   lit window, right half
-FLW = 8         ; 11,12     bottom window row
+FLW = 8         ; 11,12     bottom window row (frame = value 2, see rooms/)
+CLO = 9         ; 13,14     cloud (in the sky)  (not "CLD": that is a 6502 instruction)
+RIL = 10        ; 15,16     left side of a roof rail
+RMR = 11        ; 17,18     rail middle right side
+RML = 12        ; 19,20     rail middle left side
+RIR = 13        ; 21,22     right side of a roof rail
+ROD = 14        ; 23,24     road: asphalt with a lane marking
+PTH = 15        ; 25,26     path / sidewalk: paving stones
+PIL = 16        ; 27,28     bottom window row with a pillar (pillar = value 1, see rooms/)
 
 ; -------------------------------------------------------------------------------------
 ; Characters for each tile: left char, right char
 ; -------------------------------------------------------------------------------------
-;             EMP  BRA  BRB  BRC  WNL  WNR  LWL  LWR  FLW
+;             EMP  BRA  BRB  BRC  WNL  WNR  LWL  LWR  FLW  CLO  RIL  RMR  RML  RIR  ROD  PTH  PIL
 tile_left
-    .BYTE     0,   5,   7,   9,   2,   3,   130, 131, 11
+    .BYTE     0,   5,   7,   9,   2,   3,   130, 131, 11,  13,  15,  17,  19,  21,  23,  25,  27
 tile_right
-    .BYTE     0,   6,   8,  10,   3,   4,   131, 132, 12
+    .BYTE     0,   6,   8,  10,   3,   4,   131, 132, 12,  14,  16,  18,  20,  22,  24,  26,  28
 
 ; -------------------------------------------------------------------------------------
 ; Properties of each tile (bit flags), same order as the tile IDs
@@ -54,6 +63,11 @@ tile_flags
     .BYTE TILE_SOLID, TILE_SOLID                ; WNL, WNR
     .BYTE TILE_SOLID, TILE_SOLID                ; LWL, LWR
     .BYTE TILE_SOLID                            ; FLW
+    .BYTE 0                                     ; CLO
+    .BYTE TILE_SOLID, TILE_SOLID, TILE_SOLID, TILE_SOLID ; RIL, RMR, RML, RIR
+    .BYTE 0                                     ; ROD (ground; the walk rows keep the player off it)
+    .BYTE 0                                     ; PTH (walkable)
+    .BYTE TILE_SOLID                            ; PIL
 tile_flags_end
 
 ; build checks: every table must have one entry per tile

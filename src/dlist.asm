@@ -18,7 +18,7 @@
 ;   ...
 ;   last 3 bytes  JVB back to dlist
 ;
-; DLIs: mode lines 3, 7 and 8 have the ?dli bit, for the colour zones of university_outside
+; DLIs: mode lines 3, 7, 8 and 10 have the ?dli bit, for the colour zones of university_outside
 ; (handlers in rooms/university_outside.asm). Other rooms will need their own DLI lines.
 
     .LOCAL                      ; ?names below are local to this file
@@ -67,10 +67,10 @@ dlist
     .BYTE ?antic5+?lms, <[canvas+4*?row_bytes], >[canvas+4*?row_bytes]
     .BYTE ?antic5+?lms, <[canvas+5*?row_bytes], >[canvas+5*?row_bytes]
     .BYTE ?antic5+?lms, <[canvas+6*?row_bytes], >[canvas+6*?row_bytes]
-    .BYTE ?antic5+?lms+?dli, <[canvas+7*?row_bytes], >[canvas+7*?row_bytes] ; DLI: -> ground floor colours (row 8)
-    .BYTE ?antic5+?lms+?dli, <[canvas+8*?row_bytes], >[canvas+8*?row_bytes] ; DLI: -> ground colours (rows 9-11)
+    .BYTE ?antic5+?lms+?dli, <[canvas+7*?row_bytes], >[canvas+7*?row_bytes] ; DLI: -> ground floor colours (row 8, pillars)
+    .BYTE ?antic5+?lms+?dli, <[canvas+8*?row_bytes], >[canvas+8*?row_bytes] ; DLI: -> grass and path colours (rows 9-10)
     .BYTE ?antic5+?lms, <[canvas+9*?row_bytes], >[canvas+9*?row_bytes]
-    .BYTE ?antic5+?lms, <[canvas+10*?row_bytes], >[canvas+10*?row_bytes]
+    .BYTE ?antic5+?lms+?dli, <[canvas+10*?row_bytes], >[canvas+10*?row_bytes] ; DLI: -> road colours (row 11)
     .BYTE ?antic5+?lms, <[canvas+11*?row_bytes], >[canvas+11*?row_bytes]   ; last mode line
 ?lines_end
     .BYTE ?jvb, <dlist, >dlist                               ; Jump to vertical blank
