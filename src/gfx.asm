@@ -273,7 +273,7 @@
     .byte %11101111            ; 3 2 3 3
 
 ; Bottom_window_pillar_left [27/155]          used by: PIL (left)   = FLW with the pillar (value 1)
-    .byte %10110101            ; 2 3 1 1
+    .byte %10101010            ; 2 2 2 2
     .byte %10110101            ; 2 3 1 1
     .byte %10100101            ; 2 2 1 1
     .byte %10110101            ; 2 3 1 1
@@ -283,7 +283,7 @@
     .byte %10110101            ; 2 3 1 1
 
 ; Bottom_window_pillar_right [28/156]         used by: PIL (right)
-    .byte %01011110            ; 1 1 3 2
+    .byte %10101010            ; 2 2 2 2
     .byte %01011110            ; 1 1 3 2
     .byte %01011010            ; 1 1 2 2
     .byte %01011110            ; 1 1 3 2
@@ -291,6 +291,66 @@
     .byte %01011110            ; 1 1 3 2
     .byte %01011110            ; 1 1 3 2
     .byte %01011110            ; 1 1 3 2
+
+; Door_left_left [29/157]                     used by: DOL (left)
+    .byte %10101010            ; 2 2 2 2
+    .byte %10111111            ; 2 3 3 3
+    .byte %10101010            ; 2 2 2 2
+    .byte %10101111            ; 2 2 3 3
+    .byte %10111111            ; 2 3 3 3
+    .byte %10111111            ; 2 3 3 3
+    .byte %10111111            ; 2 3 3 3
+    .byte %10111111            ; 2 3 3 3
+
+; Door_left_right [30/158]                    used by: DOL (right)
+    .byte %10101010            ; 2 2 2 2
+    .byte %11111110            ; 3 3 3 2
+    .byte %10101010            ; 2 2 2 2
+    .byte %11111110            ; 3 3 3 2
+    .byte %11111110            ; 3 3 3 2
+    .byte %11111010            ; 3 3 2 2
+    .byte %11111110            ; 3 3 3 2
+    .byte %11111110            ; 3 3 3 2
+
+; Door_right_left [31/159]                    used by: DOR (left)
+    .byte %10101010            ; 2 2 2 2
+    .byte %10111111            ; 2 3 3 3
+    .byte %10101010            ; 2 2 2 2
+    .byte %10111111            ; 2 3 3 3
+    .byte %10111111            ; 2 3 3 3
+    .byte %10101111            ; 2 2 3 3
+    .byte %10111111            ; 2 3 3 3
+    .byte %10111111            ; 2 3 3 3
+
+; Door_right_right [32/160]                   used by: DOR (right)
+    .byte %10101010            ; 2 2 2 2
+    .byte %11111110            ; 3 3 3 2
+    .byte %10101010            ; 2 2 2 2
+    .byte %11111010            ; 3 3 2 2
+    .byte %11111110            ; 3 3 3 2
+    .byte %11111110            ; 3 3 3 2
+    .byte %11111110            ; 3 3 3 2
+    .byte %11111110            ; 3 3 3 2
+
+; Pillar_on_path_left [33/161]                used by: PIP (left)
+    .byte %10100101            ; 2 2 1 1
+    .byte %11110101            ; 3 3 1 1
+    .byte %10100101            ; 2 2 1 1
+    .byte %11110101            ; 3 3 1 1
+    .byte %10100101            ; 2 2 1 1
+    .byte %11110101            ; 3 3 1 1
+    .byte %10101010            ; 2 2 2 2
+    .byte %11111111            ; 3 3 3 3
+
+; Pillar_on_path_right [34/162]               used by: PIP (right)
+    .byte %01011010            ; 1 1 2 2
+    .byte %01011111            ; 1 1 3 3
+    .byte %01011010            ; 1 1 2 2
+    .byte %01011111            ; 1 1 3 3
+    .byte %01011010            ; 1 1 2 2
+    .byte %01011111            ; 1 1 3 3
+    .byte %10101010            ; 2 2 2 2
+    .byte %11101111            ; 3 2 3 3
 
 ; (retired: chars_len = * - gfx_school, used by the old load_gfx in tools.asm)
 ;chars_len = * - gfx_school
