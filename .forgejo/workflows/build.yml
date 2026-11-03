@@ -20,3 +20,10 @@ jobs:
           name: main-xex
           path: out/main.xex
           if-no-files-found: error
+      - name: Upload the memory map
+        if: always()              # also when the check failed: the map shows the conflict
+        uses: https://code.forgejo.org/forgejo/upload-artifact@v4   # Forgejo's fork (the GitHub one needs GitHub's servers)
+        with:
+          name: memmap
+          path: out/memmap.txt
+          if-no-files-found: warn
