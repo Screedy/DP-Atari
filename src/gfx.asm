@@ -352,5 +352,75 @@
     .byte %10101010            ; 2 2 2 2
     .byte %11101111            ; 3 2 3 3
 
+; Bottom_window_middle_left [35/163]
+    .byte %10101010            ; 2 2 2 2
+    .byte %10111111            ; 2 3 3 3
+    .byte %10101010            ; 2 2 2 2
+    .byte %10111111            ; 2 3 3 3
+    .byte %10111111            ; 2 3 3 3
+    .byte %10111111            ; 2 3 3 3
+    .byte %10111111            ; 2 3 3 3
+    .byte %10111111            ; 2 3 3 3
+
+; Bottom_window_middle_right [36/164]
+    .byte %10101010            ; 2 2 2 2
+    .byte %11111110            ; 3 3 3 2
+    .byte %10101010            ; 2 2 2 2
+    .byte %11111110            ; 3 3 3 2
+    .byte %11111110            ; 3 3 3 2
+    .byte %11111110            ; 3 3 3 2
+    .byte %11111110            ; 3 3 3 2
+    .byte %11111110            ; 3 3 3 2
+
+; Front window left [37/165]                  used by: WFL (left)   = char 2 with a 2-row sill
+    .byte %01011001            ; 1 1 2 1
+    .byte %01110111            ; 1 3 1 3
+    .byte %01110111            ; 1 3 1 3
+    .byte %01110111            ; 1 3 1 3
+    .byte %01110111            ; 1 3 1 3
+    .byte %01110111            ; 1 3 1 3
+    .byte %01011001            ; 1 1 2 1
+    .byte %01011001            ; 1 1 2 1
+
+; Front window center [38/166]                used by: WFL (right), WFR (left)
+    .byte %01010101            ; 1 1 1 1
+    .byte %11111111            ; 3 3 3 3
+    .byte %11111111            ; 3 3 3 3
+    .byte %11111111            ; 3 3 3 3
+    .byte %11111111            ; 3 3 3 3
+    .byte %11111111            ; 3 3 3 3
+    .byte %01010101            ; 1 1 1 1
+    .byte %01010101            ; 1 1 1 1
+
+; Front window right [39/167]                 used by: WFR (right)  = char 4 with a 2-row sill
+    .byte %01100101            ; 1 2 1 1
+    .byte %11011101            ; 3 1 3 1
+    .byte %11011101            ; 3 1 3 1
+    .byte %11011101            ; 3 1 3 1
+    .byte %11011101            ; 3 1 3 1
+    .byte %11011101            ; 3 1 3 1
+    .byte %01100101            ; 1 2 1 1
+    .byte %01100101            ; 1 2 1 1
+
+; Pillar_sky_left [40/168]                    used by: PIS (left)   pillar (value 1) on the sky background
+    .byte %00000101            ; 0 0 1 1
+    .byte %00000101            ; 0 0 1 1
+    .byte %00000101            ; 0 0 1 1
+    .byte %00000101            ; 0 0 1 1
+    .byte %00000101            ; 0 0 1 1
+    .byte %00000101            ; 0 0 1 1
+    .byte %00000101            ; 0 0 1 1
+    .byte %00000101            ; 0 0 1 1
+
+; Pillar_sky_right [41/169]                   used by: PIS (right)
+    .byte %01010000            ; 1 1 0 0
+    .byte %01010000            ; 1 1 0 0
+    .byte %01010000            ; 1 1 0 0
+    .byte %01010000            ; 1 1 0 0
+    .byte %01010000            ; 1 1 0 0
+    .byte %01010000            ; 1 1 0 0
+    .byte %01010000            ; 1 1 0 0
+    .byte %01010000            ; 1 1 0 0
+
 ; (retired: chars_len = * - gfx_school, used by the old load_gfx in tools.asm)
 ;chars_len = * - gfx_school

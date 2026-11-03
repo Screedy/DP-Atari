@@ -45,15 +45,19 @@ PIL = 16        ; 27,28     bottom window row with a pillar (pillar = value 1, s
 DOL = 17        ; 29,30     door, left wing (row 8: 2 = frame, 3 = glass)
 DOR = 18        ; 31,32     door, right wing (mirror of DOL)
 PIP = 19        ; 33,34     pillar standing on the path (row 9: 1 = pillar, 2 = joints, 3 = stones)
+FLM = 20        ; 35,36     bottom window middle of the building
+WFL = 21        ; 37,38     front window, left half (protruding part: 2-row sill)
+WFR = 22        ; 38,39     front window, right half
+PIS = 23        ; 40,41     pillar in front of the sky (row 8: 0 = sky, 1 = pillar)
 
 ; -------------------------------------------------------------------------------------
 ; Characters for each tile: left char, right char
 ; -------------------------------------------------------------------------------------
-;             EMP  BRA  BRB  BRC  WNL  WNR  LWL  LWR  FLW  CLO  RIL  RMR  RML  RIR  ROD  PTH  PIL  DOL  DOR  PIP
+;             EMP  BRA  BRB  BRC  WNL  WNR  LWL  LWR  FLW  CLO  RIL  RMR  RML  RIR  ROD  PTH  PIL  DOL  DOR  PIP  FLM  WFL  WFR  PIS
 tile_left
-    .BYTE     0,   5,   7,   9,   2,   3,   130, 131, 11,  13,  15,  17,  19,  21,  23,  25,  27,  29,  31,  33
+    .BYTE     0,   5,   7,   9,   2,   3,   130, 131, 11,  13,  15,  17,  19,  21,  23,  25,  27,  29,  31,  33,  35,  37,  38,  40
 tile_right
-    .BYTE     0,   6,   8,  10,   3,   4,   131, 132, 12,  14,  16,  18,  20,  22,  24,  26,  28,  30,  32,  34
+    .BYTE     0,   6,   8,  10,   3,   4,   131, 132, 12,  14,  16,  18,  20,  22,  24,  26,  28,  30,  32,  34,  36,  38,  39,  41
 
 ; -------------------------------------------------------------------------------------
 ; Properties of each tile (bit flags), same order as the tile IDs
@@ -72,7 +76,9 @@ tile_flags
     .BYTE 0                                     ; PTH (walkable)
     .BYTE TILE_SOLID                            ; PIL
     .BYTE TILE_SOLID, TILE_SOLID                ; DOL, DOR (later: a "door / exit" flag bit)
-    .BYTE TILE_SOLID                            ; PIP (the player can't walk through a pillar)
+    .BYTE TILE_SOLID, TILE_SOLID                ; PIP (the player can't walk through a pillar), FLM
+    .BYTE TILE_SOLID, TILE_SOLID                ; WFL, WFR
+    .BYTE TILE_SOLID                            ; PIS
 tile_flags_end
 
 ; build checks: every table must have one entry per tile
