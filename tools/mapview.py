@@ -24,6 +24,9 @@ SYMBOLS = {
     "PIL": "I",
     "DOL": "{", "DOR": "}",
     "PIP": "!",
+    "FLM": ":",
+    "WFL": "d", "WFR": "b",
+    "PIS": "|",
 }
 ROW = re.compile(r"^\s+;\s*row \d+")        # indented row comment, e.g. "    ; row 4: building"
 BYTES = re.compile(r"^\s*\.BYTE\s+(.*)", re.I)

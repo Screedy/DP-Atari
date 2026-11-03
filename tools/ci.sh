@@ -42,9 +42,12 @@ if grep -q "Warning:" "$log"; then
 fi
 grep -E "Block:|successful" "$log"
 
-# --- memory map: exits 1 on overlaps / conflicts ---
+# --- memory map: exits 1 on overlaps / conflicts; saved to out/memmap.txt (CI artifact) ---
 echo "== memory map"
-python3 tools/memmap.py out/main.xex
+status=0
+python3 tools/memmap.py -vv out/main.xex >out/memmap.txt || status=$?
+cat out/memmap.txt
+[ "$status" -eq 0 ] || exit "$status"
 
 # --- tool tests ---
 echo "== tool tests"
