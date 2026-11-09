@@ -24,6 +24,8 @@ map_w           = 80            ; tiles per map row (current room)
 map_h           = 12            ; map rows (current room)
 walk_row_top    = 9             ; walkable map rows (current room): grass, sidewalk
 walk_row_bottom = 10
+start_x         = 14            ; first visible map column at start (current room): the entrance
+                                ;   doors (cols 26-27) at the player's start column view_w/2
 view_w          = 24            ; tiles shown per row (24 tiles = 48 chars, wide playfield)
 view_h          = 12            ; rows visible = mode lines in dlist.asm (set by the screen, not the map)
 canvas_w        = map_w*2       ; canvas bytes per row: the whole map row expanded (2 chars/tile)
@@ -32,6 +34,9 @@ canvas_len      = canvas_w*map_h ; one canvas row (canvas_w bytes) per map row; 
                                 ; cross a 4 KB boundary (ANTIC's address counter wraps there)
 pmg_len         = $400          ; PMG area size: 1 KB for double-line resolution
 pmg             = map_area-pmg_len  ; Player/Missile graphics, right below the map area ($7C00)
+logo_bitmap     = $A000         ; logo screen data (attractor/logo.asm): RAM while BASIC is off.
+                                ;   4 KB aligned: the data must stay inside one 4 KB block
+                                ;   (logo_bitmap_len = its exact size, set after the .INCBIN below)
 
 ; -------------------------------------------------------------------------------------
 ; Zero page variables (fast to access; (ZP),Y indirect addressing only works with them)
@@ -63,7 +68,8 @@ key_d           = $3A
 ; -------------------------------------------------------------------------------------
 
 start
-    jsr setup_screen            ; switch to our display list (dlist.asm)
+    jsr show_logo               ; department logo until any input or ~10 s (attractor/logo.asm)
+    jsr setup_screen           ; switch to our display list (dlist.asm)
     jsr setup_colors            ; charset and player colours (colors.asm)
     jsr setup_university_outside_colors ; this room's palette + DLI colour zones (rooms/)
 ;    jsr load_gfx
@@ -156,7 +162,10 @@ read_input
     rts
 
 scroll_x
-    .BYTE 0                     ; first visible map column (tiles); 0..map_w-view_w
+    .BYTE start_x               ; first visible map column (tiles); 0..map_w-view_w
+.IF start_x > map_w-view_w
+    .ERROR "start_x: the view would run past the right end of the map"
+.ENDIF
 
 ; -------------------------------------------------------------------------------------
 ; Function: scroll_rd
@@ -258,6 +267,7 @@ display_map
 .INCLUDE "tiles.asm"            ; tile IDs, tile tables, draw_tile
 .INCLUDE "player.asm"           ; player movement, collision, drawing
 .INCLUDE "rooms/university_outside.asm" ; room colours: DLI zones
+.INCLUDE "attractor/logo.asm"   ; logo screen: show_logo and its display list
 
 ; code must end before the charset, or it would be overwritten by it
 .IF * > charset
@@ -272,6 +282,14 @@ display_map
 .INCLUDE "maps/university_outside.asm"
 .IF * - map_area > map_area_len
     .ERROR "Map bigger than the map area"
+.ENDIF
+
+; ----------- Logo bitmap -----------
+    * = logo_bitmap             ; loaded straight to where ANTIC reads it
+    .INCBIN "assets/logo.bin"   ; made by tools/img2bitmap.py from assets/logo.png
+logo_bitmap_len = logo_data_len ; exact size (assets/logo_dlist.asm), for memmap
+.IF * - logo_bitmap - logo_data_len
+    .ERROR "assets/logo.bin and assets/logo_dlist.asm don't match: run tools/img2bitmap.py"
 .ENDIF
 
 ; ----------- Run the program -----------

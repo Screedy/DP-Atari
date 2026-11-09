@@ -37,6 +37,7 @@
 ?antic2 = 2                     ; ANTIC mode 2: text, 40 chars, 8 scanlines, 2 colours (not used)
 ?antic5 = 5                     ; ANTIC mode 5: 40 chars (48 wide), 16 scanlines, 4 colours (+1 inverse)
 ?row_bytes = canvas_w           ; canvas bytes per mode line (LMS on every line, scroll_lu/rd move them)
+?x0 = start_x*2                 ; the view starts scrolled to map column start_x (2 chars per tile)
 
 ; -------------------------------------------------------------------------------------
 ; Function: setup_screen
@@ -60,18 +61,18 @@ setup_screen
 ; -------------------------------------------------------------------------------------
 dlist
     .BYTE ?blank8, ?blank8, ?blank8                            ; 24 blank lines (top border)
-    .BYTE ?antic5+?lms, <[canvas+0*?row_bytes], >[canvas+0*?row_bytes]     ; mode line 0 = canvas row 0
-    .BYTE ?antic5+?lms, <[canvas+1*?row_bytes], >[canvas+1*?row_bytes]     ; mode line 1 = canvas row 1
-    .BYTE ?antic5+?lms, <[canvas+2*?row_bytes], >[canvas+2*?row_bytes]
-    .BYTE ?antic5+?lms+?dli, <[canvas+3*?row_bytes], >[canvas+3*?row_bytes] ; DLI: top -> building colours (rows 4-7)
-    .BYTE ?antic5+?lms, <[canvas+4*?row_bytes], >[canvas+4*?row_bytes]
-    .BYTE ?antic5+?lms, <[canvas+5*?row_bytes], >[canvas+5*?row_bytes]
-    .BYTE ?antic5+?lms, <[canvas+6*?row_bytes], >[canvas+6*?row_bytes]
-    .BYTE ?antic5+?lms+?dli, <[canvas+7*?row_bytes], >[canvas+7*?row_bytes] ; DLI: -> ground floor colours (row 8, pillars)
-    .BYTE ?antic5+?lms+?dli, <[canvas+8*?row_bytes], >[canvas+8*?row_bytes] ; DLI: -> grass and path colours (rows 9-10)
-    .BYTE ?antic5+?lms, <[canvas+9*?row_bytes], >[canvas+9*?row_bytes]
-    .BYTE ?antic5+?lms+?dli, <[canvas+10*?row_bytes], >[canvas+10*?row_bytes] ; DLI: -> road colours (row 11)
-    .BYTE ?antic5+?lms, <[canvas+11*?row_bytes], >[canvas+11*?row_bytes]   ; last mode line
+    .BYTE ?antic5+?lms, <[canvas+0*?row_bytes+?x0], >[canvas+0*?row_bytes+?x0]     ; mode line 0 = canvas row 0
+    .BYTE ?antic5+?lms, <[canvas+1*?row_bytes+?x0], >[canvas+1*?row_bytes+?x0]     ; mode line 1 = canvas row 1
+    .BYTE ?antic5+?lms, <[canvas+2*?row_bytes+?x0], >[canvas+2*?row_bytes+?x0]
+    .BYTE ?antic5+?lms+?dli, <[canvas+3*?row_bytes+?x0], >[canvas+3*?row_bytes+?x0] ; DLI: top -> building colours (rows 4-7)
+    .BYTE ?antic5+?lms, <[canvas+4*?row_bytes+?x0], >[canvas+4*?row_bytes+?x0]
+    .BYTE ?antic5+?lms, <[canvas+5*?row_bytes+?x0], >[canvas+5*?row_bytes+?x0]
+    .BYTE ?antic5+?lms, <[canvas+6*?row_bytes+?x0], >[canvas+6*?row_bytes+?x0]
+    .BYTE ?antic5+?lms+?dli, <[canvas+7*?row_bytes+?x0], >[canvas+7*?row_bytes+?x0] ; DLI: -> ground floor colours (row 8, pillars)
+    .BYTE ?antic5+?lms+?dli, <[canvas+8*?row_bytes+?x0], >[canvas+8*?row_bytes+?x0] ; DLI: -> grass and path colours (rows 9-10)
+    .BYTE ?antic5+?lms, <[canvas+9*?row_bytes+?x0], >[canvas+9*?row_bytes+?x0]
+    .BYTE ?antic5+?lms+?dli, <[canvas+10*?row_bytes+?x0], >[canvas+10*?row_bytes+?x0] ; DLI: -> road colours (row 11)
+    .BYTE ?antic5+?lms, <[canvas+11*?row_bytes+?x0], >[canvas+11*?row_bytes+?x0]   ; last mode line
 ?lines_end
     .BYTE ?jvb, <dlist, >dlist                               ; Jump to vertical blank
 

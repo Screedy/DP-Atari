@@ -58,7 +58,7 @@ walk_y_max      = pmg_row0+walk_row_bottom*8    ; sprite top on the lowest walka
 player_col
     .BYTE view_w/2              ; screen column 0..view_w-1 (starts in the middle)
 player_y
-    .BYTE walk_y_min            ; PMG line of the sprite top (starts on the top walkable row)
+    .BYTE walk_y_max            ; PMG line of the sprite top (starts on the bottom walkable row)
 
 ; Tiles around the player's feet, refreshed by look_around (tile IDs, see tiles.asm)
 up_tile
