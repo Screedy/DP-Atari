@@ -26,6 +26,15 @@ else
 fi
 "$ATASM" 2>&1 | head -1 || true
 
+# --- the committed logo data + display list must match their source picture ---
+echo "== logo bitmap"
+mkdir -p out
+python3 tools/img2bitmap.py assets/logo.png out/logo
+if ! cmp -s out/logo.bin assets/logo.bin || ! cmp -s out/logo_dlist.asm assets/logo_dlist.asm; then
+    echo "FAILED: assets/logo.bin / logo_dlist.asm out of date: python3 tools/img2bitmap.py assets/logo.png assets/logo"
+    exit 1
+fi
+
 # --- assemble (same include dirs as atasm-build.json) ---
 echo "== assembling src/main.asm"
 mkdir -p out
@@ -53,5 +62,6 @@ cat out/memmap.txt
 echo "== tool tests"
 python3 tools/test_memmap.py
 python3 tools/test_mapview.py
+python3 tools/test_img2bitmap.py
 
 echo "== all checks passed"
